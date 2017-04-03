@@ -1,14 +1,31 @@
 from flask import Flask, render_template, request, g, redirect, url_for, session, flash
-
+from flask_oauth import OAuth
 import sqlite3 as sql
-
 from functools import wraps
-
-import psycopg2
+import psycopg2, json
 
 app = Flask(__name__)
+GOOGLE_CLIENT_ID = '852263075688-3u85br5hvvk6ajvrafavv3lpupns3va7.apps.googleusercontent.com'
+GOOGLE_CLIENT_SECRET = 'l7a5ztJX5bW9iZBTq81GP-pg'
+REDIRECT_URI = '/oauth2callback'
+SECRET_KEY = 'development key'
 
-app.secret_key = 'my precious'
+app.secret_key = SECRET_KEY
+oauth = OAuth()
+
+google = oauth.remote_app(
+	'google',
+	base_url='https://www.google.com/accounts/',
+	authorize_url='https://accounts.google.com/o/oauth2/auth',
+	request_token_url=None,
+	request_token_params={'scope': 'https://www.googleapis.com/auth/userinfo.email',
+		'response_type': 'code'},
+	access_token_url='https://accounts.google.com/o/oauth2/token',
+	access_token_method='POST',
+	access_token_params={'grant_type': 'authorization_code'},
+	consumer_key=GOOGLE_CLIENT_ID,
+	consumer_secret=GOOGLE_CLIENT_SECRET
+)
 
 # login required decorator
 def login_required(f):
@@ -21,6 +38,57 @@ def login_required(f):
             return redirect(url_for('login'))
     return wrap
 
+@app.route('/google')
+def g_index():
+    access_token = session.get('access_token')
+    if access_token is None:
+        return redirect(url_for('google_login'))
+
+    access_token = access_token[0]
+    from urllib2 import Request, urlopen, URLError
+    headers = {'Authorization': 'OAuth '+access_token}
+    req = Request('https://www.googleapis.com/oauth2/v1/userinfo',
+                  None, headers)
+    # print type(req)
+    try:
+        res = urlopen(req)
+        print res
+    except URLError, e:
+        if e.code == 401:
+            # Unauthorized - bad token
+            session.pop('access_token', None)
+            return redirect(url_for('google_login'))
+        return res.read()
+
+    # Extract user's information
+    profile = json.loads(res.read())
+    user_id = profile['id']
+    family_name = profile['family_name']
+    given_name = profile['given_name']
+    name = profile['name']
+    email = profile['email']
+
+    print "user_id: %s  family name:%s  given name:%s  name:%s  email:%s\n"%(user_id, family_name, given_name, name, email)
+    return render_template('index.html')
+
+@app.route('/google_login')
+def google_login():
+    callback=url_for('authorized', _external=True)
+    return google.authorize(callback=callback)
+
+
+@app.route(REDIRECT_URI)
+@google.authorized_handler
+def authorized(resp):
+    access_token = resp['access_token']
+    session['access_token'] = access_token, ''
+    return redirect(url_for('g_index'))
+
+@google.tokengetter
+def get_access_token():
+    return session.get('access_token')
+
+
 @app.route('/welcome')
 def welcome():
     return render_template('welcome.html')  # render a template
@@ -32,23 +100,23 @@ def login():
 
     if request.method == 'POST':
 
-        db = get_db()  
-        cur=db.cursor()     
-        cur.execute("select * from administrator")
-        rows= cur.fetchall();
-
-        for row in rows:
-            if request.form['username'] == row[2] and request.form['password'] == row[3]:
-               user_password = True  
+        # db = get_db()
+        # cur=db.cursor()
+        # cur.execute("select * from administrator")
+        # rows= cur.fetchall();
+        #
+        # for row in rows:
+        #     if request.form['username'] == row[2] and request.form['password'] == row[3]:
+        #        user_password = True
 
         if request.form['username'] == 'admin' and request.form['password'] == 'admin':
-            user_password = True 
+            user_password = True
 
         if user_password:
             session['logged_in'] = True
             #flash('You were logged in.')
             return redirect(url_for('index'))
-           
+
         else:
             error = 'Invalid Credentials. Please try again.'
     return render_template('login.html', error=error)
@@ -63,7 +131,7 @@ def logout():
 DATABASE = 'database.db'
 def get_db():
     db = psycopg2.connect("dbname='database' user='postgres' host='localhost' password='580430'")
-    
+
     return db
 
 @app.teardown_appcontext
@@ -233,17 +301,17 @@ def new_restaurant():
 def addrecadmin():
     if request.method == 'POST':
 
-        
+
         try:
-            
+
             idn = request.form['id']
             email = request.form['email']
             nm = request.form['nm']
             pin= request.form['pin']
-            
+
 
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("INSERT INTO administrator VALUES (%s, %s, %s, %s)", (idn,email, nm, pin))
                 con.commit()
                 msg = "Record successfully added"
@@ -260,9 +328,9 @@ def addrecadmin():
 def addrecparty():
     if request.method == 'POST':
 
-        
+
         try:
-            
+
             size = request.form['size']
             customer_id= request.form['customer_id']
             party_datetime= request.form['party_datetime']
@@ -270,11 +338,11 @@ def addrecparty():
             restaurant_id= request.form['restaurant_id']
             seated_datetime= request.form['seated_datetime']
             finish_at= request.form['finish_at']
-          
-            
+
+
 
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("INSERT INTO party VALUES (%s, %s, %s, %s, %s, %s, %s)", (size, customer_id, party_datetime, table_id, restaurant_id, seated_datetime, finish_at))
                 con.commit()
                 msg = "Record successfully added"
@@ -291,19 +359,19 @@ def addrecparty():
 def addrecwaitlist():
     if request.method == 'POST':
 
-        
+
         try:
-            
+
             restaurant_id = request.form['restaurant_id']
             customer_id= request.form['customer_id']
             party_datetime= request.form['party_datetime']
             listed_at= request.form['listed_at']
             unlisted_at= request.form['unlisted_at']
-          
-            
+
+
 
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("INSERT INTO waitlist VALUES (%s, %s, %s, %s, %s)", (restaurant_id, customer_id, party_datetime, listed_at, unlisted_at))
                 con.commit()
                 msg = "Record successfully added"
@@ -318,17 +386,17 @@ def addrecwaitlist():
 @app.route('/addrecnotification', methods=['POST', 'GET'])
 @login_required
 def addrecnotification():
-    if request.method == 'POST':    
+    if request.method == 'POST':
         try:
-            
+
             body= request.form['body']
             ntype= request.form['type']
             sent_at= request.form['sent_at']
             restaurant_id= request.form['restaurant_id']
             customer_id= request.form['customer_id']
-  
+
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("INSERT INTO notification VALUES (%s, %s, %s, %s, %s)", (body, ntype, sent_at, restaurant_id, customer_id))
                 con.commit()
                 msg = "Record successfully added"
@@ -345,14 +413,14 @@ def addrecnotification():
 def addrecmanage():
     if request.method == 'POST':
 
-        
+
         try:
-            
+
             idn = request.form['admin_id']
             res_id = request.form['res_id']
 
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("INSERT INTO manage VALUES (1, 1)")
                 con.commit()
                 msg = "Record successfully added"
@@ -379,7 +447,7 @@ def addreccustomer():
             email = request.form['email']
 
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("INSERT INTO customer VALUES (%s, %s, %s, %s, %s)", (idn,first_nm, last_nm, phone, email))
                 con.commit()
                 msg = "Record successfully added"
@@ -401,11 +469,11 @@ def addrectable():
             table_id= request.form['table_id']
             seats= request.form['seats']
             restaurant_id = request.form['restarant_id']
-            
-           
+
+
 
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("INSERT INTO restaurant_table VALUES (%s, %s, %s)", (table_id, seats, restaurant_id))
                 con.commit()
                 msg = "Record successfully added"
@@ -425,13 +493,13 @@ def addrecrestaurant():
 
         msg = "Record successfully added"
         try:
-            
+
             idn = request.form['id']
             nm = request.form['nm']
-            
+
 
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("INSERT INTO restaurant VALUES (%s, %s)", (idn,nm))
                 con.commit()
                 msg = "Record successfully added"
@@ -468,7 +536,7 @@ def search():
         rows= cur.fetchall();
         return render_template('search.html', rows1 = rows)
     return render_template('search.html', rows1 = [])
-        
+
 @app.route('/search2', methods=['GET', 'POST'])
 @login_required
 def search2():
@@ -479,7 +547,7 @@ def search2():
         cur.execute("select * from customer where customer_id= %s", [customer_id])
         rows= cur.fetchall();
         return render_template('search.html', rows2 = rows)
-    return render_template('search.html', rows2 = [])   
+    return render_template('search.html', rows2 = [])
 
 
 @app.route('/deleteadmin', methods=['POST', 'GET'])
@@ -491,9 +559,9 @@ def deleteadmin():
         try:
             id_admin= request.form['id']
             print id_admin
-        
+
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("DELETE  from administrator where admin_id= %s ", (id_admin))
                 con.commit()
                 msg = "Record successfully Deleted"
@@ -515,9 +583,9 @@ def deletewaitlist():
             restaurant_id= request.form['restaurant_id']
             customer_id = request.form['customer_id']
             party_datetime = request.form['party_datetime']
-         
+
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("DELETE  from waitlist where restaurant_id= %s and customer_id = %s and party_datetime = %s ", (restaurant_id, customer_id, party_datetime))
                 con.commit()
                 msg = "Record successfully Deleted"
@@ -538,9 +606,9 @@ def deleteparty():
         try:
             customer_id= request.form['customer_id']
             party_datetime= request.form['party_time']
-        
+
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("DELETE  from party where customer_id= %s AND party_datetime= %s", (customer_id, party_datetime))
                 con.commit()
                 msg = "Record successfully Deleted"
@@ -559,13 +627,13 @@ def deletenotification():
 
         msg = "Record successfully Deleted"
         try:
-            
+
             sent_at= request.form['sent_at']
             restaurant_id= request.form['restaurant_id']
             customer_id= request.form['customer_id']
-        
+
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("DELETE  from notification where sent_at=%s AND restaurant_id =%s and customer_id= %s", (sent_at, restaurant_id, customer_id))
                 con.commit()
                 msg = "Record successfully Deleted"
@@ -586,7 +654,7 @@ def deleterestaurant():
         try:
             id_restaurant= request.form['id']
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("DELETE FROM restaurant where restaurant_id= %s ", (id_restaurant))
                 con.commit()
                 msg = "Record successfully Deleted"
@@ -597,7 +665,7 @@ def deleterestaurant():
         finally:
             return render_template("result.html", msg=msg, url ="restaurant")
             con.close()
-    
+
 @app.route('/deletetable', methods=['POST', 'GET'])
 @login_required
 def deletetable():
@@ -607,11 +675,11 @@ def deletetable():
         try:
             id_table= request.form['table_id']
             print id_table
-         
-        
+
+
 
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("DELETE  from restaurant_table where table_id= %s ", (id_table))
                 con.commit()
                 msg = "Record successfully Deleted"
@@ -633,11 +701,11 @@ def deletecustomer():
         try:
             id_admin= request.form['id']
             print id_admin
-            
-        
+
+
 
             with get_db() as con:
-                cur = con.cursor()    
+                cur = con.cursor()
                 cur.execute("DELETE  from customer where customer_id= %s ", (id_admin))
                 con.commit()
                 msg = "Record successfully Deleted"

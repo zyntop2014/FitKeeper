@@ -1,9 +1,11 @@
 {% extends "layout.html" %}
 {% block body %}
   <h2>Login</h2>
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+  <meta name="google-signin-client_id" content="852263075688-3u85br5hvvk6ajvrafavv3lpupns3va7.apps.googleusercontent.com">
   {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
   <img src="1.jpg" alt="Mountain View" >
-  <form action="{{ url_for('login') }}" method=post>
+  <!-- <form action="{{ url_for('login') }}" method=post>
     <dl>
       <dt>Username:
       <dd><input type=text name=username>
@@ -11,5 +13,7 @@
       <dd><input type=password name=password>
       <dd><input type=submit value=Login>
     </dl>
-  </form>
+  </form> -->
+  <!-- <button type="button" class="g-signin2" onclick="location='/google'"></button> -->
+  <button class="loginBtn--google" onclick="location='/google'">Login with Google</button>
 {% endblock %}

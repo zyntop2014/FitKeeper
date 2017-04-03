@@ -6,7 +6,6 @@ import json
 GOOGLE_CLIENT_ID = '852263075688-3u85br5hvvk6ajvrafavv3lpupns3va7.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'l7a5ztJX5bW9iZBTq81GP-pg'
 REDIRECT_URI = '/oauth2callback'
-
 SECRET_KEY = 'development key'
 DEBUG = True
 
@@ -78,13 +77,12 @@ def index():
     email = profile['email']
 
     return "user_id: %s  family name:%s  given name:%s  name:%s  email:%s\n"%(user_id, family_name, given_name, name, email)
-
+    return render_template('index.html')
 
 @application.route('/login')
 def login():
     callback=url_for('authorized', _external=True)
     return google.authorize(callback=callback)
-
 
 
 @application.route(REDIRECT_URI)
@@ -93,7 +91,6 @@ def authorized(resp):
     access_token = resp['access_token']
     session['access_token'] = access_token, ''
     return redirect(url_for('index'))
-
 
 @google.tokengetter
 def get_access_token():
