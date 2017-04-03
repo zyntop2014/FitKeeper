@@ -60,7 +60,8 @@ def g_index():
             return redirect(url_for('google_login'))
         return res.read()
 
-    # Extract user's information
+    # Login successfully. Extract user's information
+    session['logged_in'] = True
     profile = json.loads(res.read())
     user_id = profile['id']
     family_name = profile['family_name']
