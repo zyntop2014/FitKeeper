@@ -1,0 +1,71 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+
+<form  method = "GET">
+  <h2> My profile</h3>
+  <img src="books.jpg">
+  <h5> Name:  </h2>
+  <h5> UNI:
+
+  <input type = "file" placeholder = "Image" name = "pic" />
+  <input class="formBtn" type="submit" value="Upload Picture"/>
+  
+</form>
+
+<br>
+
+
+<form  method = "GET">
+  <h2>Reserved Slots</h3>
+  
+</form>
+
+
+
+<br>
+
+<div class="table-responsive-vertical shadow-z-1">
+  <!-- Table starts here -->
+  <table id="table" class="table table-hover table-mc-light-blue">
+    <thead>
+      <tr>
+        <th><b>Reserved Machine Type </b></th>
+        <th><b>Reserved Machine Number</b></th>
+        <th><b>Reserved Time</b></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{row[0]}}</td>
+        <td>{{row[1]}}</td>
+        <td> {{row[2]}}</td>
+        <td> {{row[3]}}</td>
+        <td>
+          <form action="{{ url_for('delete') }}" method=post class=deletetable>
+            <input type = hidden name = "table_id" value = "{{row[2]}}"/>
+            <input type=submit value = Delete></input>
+          </form>
+        </td>
+        <td>
+          <form action="{{ url_for('edit') }}" method=get>
+             <input type = hidden name = "table_id" value = "{{row[2]}}"/>
+             <input type = hidden name = "restaurant_id" value = "{{row[0]}}"/>
+            <input type=submit value = Edit></input>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+
+
+<form  method = "GET">
+  <h2>My reviews</h3>
+  
+</form>
+
+
+{% endblock %}
