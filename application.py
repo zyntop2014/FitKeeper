@@ -75,8 +75,12 @@ def index():
     given_name = profile['given_name']
     name = profile['name']
     email = profile['email']
+    photo_url = profile['picture']
+    gender = profile['gender']
+    link = profile['link']
 
-    return "user_id: %s  family name:%s  given name:%s  name:%s  email:%s\n"%(user_id, family_name, given_name, name, email)
+    print profile
+    print  "user_id: %s  family name:%s  given name:%s  name:%s  email:%s\n"%(user_id, family_name, given_name, name, email)
     return render_template('index.html')
 
 @application.route('/login')
