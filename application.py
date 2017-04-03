@@ -77,7 +77,7 @@ def index():
     name = profile['name']
     email = profile['email']
 
-    return 
+    return "user_id: %s  family name:%s  given name:%s  name:%s  email:%s\n"%(user_id, family_name, given_name, name, email)
 
 
 @application.route('/login')
@@ -99,6 +99,9 @@ def authorized(resp):
 def get_access_token():
     return session.get('access_token')
 
+@application.route('/test')
+def login_button():
+    return render_template('test_index.html')
 
 if __name__ == "__main__":
     # application.run(host='0.0.0.0')
