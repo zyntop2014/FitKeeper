@@ -11,7 +11,7 @@ DEBUG = True
 
 application = Flask(__name__)
 application.debug = DEBUG
-application.secret_key = SECRET_KEY
+# application.secret_key = SECRET_KEY
 oauth = OAuth()
 
 google = oauth.remote_app(
@@ -54,7 +54,6 @@ def index():
 
     access_token = access_token[0]
     from urllib2 import Request, urlopen, URLError
-
     headers = {'Authorization': 'OAuth '+access_token}
     req = Request('https://www.googleapis.com/oauth2/v1/userinfo',
                   None, headers)
