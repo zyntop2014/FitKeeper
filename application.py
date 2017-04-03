@@ -1,17 +1,18 @@
 import flask
 from flask import Flask, request, render_template, redirect, url_for, session
 from flask_oauth import OAuth
+import json
 
 GOOGLE_CLIENT_ID = '852263075688-3u85br5hvvk6ajvrafavv3lpupns3va7.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'l7a5ztJX5bW9iZBTq81GP-pg'
 REDIRECT_URI = '/oauth2callback'
 
-# SECRET_KEY = 'development key'
+SECRET_KEY = 'development key'
 DEBUG = True
 
 application = Flask(__name__)
 application.debug = DEBUG
-# application.secret_key = SECRET_KEY
+application.secret_key = SECRET_KEY
 oauth = OAuth()
 
 google = oauth.remote_app(
@@ -57,8 +58,10 @@ def index():
     headers = {'Authorization': 'OAuth '+access_token}
     req = Request('https://www.googleapis.com/oauth2/v1/userinfo',
                   None, headers)
+    # print type(req)
     try:
         res = urlopen(req)
+        print res
     except URLError, e:
         if e.code == 401:
             # Unauthorized - bad token
@@ -66,7 +69,15 @@ def index():
             return redirect(url_for('login'))
         return res.read()
 
-    return res.read()
+    # Extract user's information
+    profile = json.loads(res.read())
+    user_id = profile['id']
+    family_name = profile['family_name']
+    given_name = profile['given_name']
+    name = profile['name']
+    email = profile['email']
+
+    return 
 
 
 @application.route('/login')
