@@ -52,7 +52,7 @@ def g_index():
     # print type(req)
     try:
         res = urlopen(req)
-        print res
+        print (res)
     except URLError, e:
         if e.code == 401:
             # Unauthorized - bad token
