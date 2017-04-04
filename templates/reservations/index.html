@@ -1,28 +1,25 @@
 {% extends "layouts/base.html" %}
 {% block content %}
+    <title>My profile</title>
+    <h1>My profile</h1>
+      <img src="{{ url_for('static', filename='img/1.jpg') }}"></img>
+ 	 <h5> Name: Robert </h2>
+ 	 <h5> UNI: yz3054
 
-<form  method = "GET">
-  <h2> My profile</h3>
-  <img src="{{ url_for('static', filename='img/1.jpg') }}"></img>
-  <h5> Name: Roert </h2>
-  <h5> UNI: yz3054
+    <form method=post enctype=multipart/form-data>
+      <p><input type=file name=file>
+         <input type=submit value=Upload>
+    </form>
 
-  <input type = "file" placeholder = "Image" name = "pic" />
-  <input class="formBtn" type="submit" value="Upload Picture"/>
+    <br>
+
+    <form  method = "GET">
+    <h2>Reserved Slots</h3>
   
-</form>
-
-<br>
+   </form>
 
 
-<form  method = "GET">
-  <h2>Reserved Slots</h3>
-  
-</form>
-
-
-
-<br>
+   <br>
 
 <div class="table-responsive-vertical shadow-z-1">
   <!-- Table starts here -->
