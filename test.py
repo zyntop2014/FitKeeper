@@ -5,6 +5,9 @@ from functools import wraps
 import psycopg2, json
 import os
 from werkzeug.utils import secure_filename
+import pymysql
+from datetime import datetime as dt
+#import transloc
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -81,8 +84,8 @@ def g_index():
     name = profile['name']
     email = profile['email']
     photo_url = profile['picture']
-    gender = profile['gender']
-    link = profile['link']
+    #gender = profile['gender']
+    #link = profile['link']
 
     print "user_id: %s  family name:%s  given name:%s  name:%s  email:%s\n"%(user_id, family_name, given_name, name, email)
     return render_template('index.html')
@@ -118,7 +121,7 @@ def login():
 
         # db = get_db()
         # cur=db.cursor()
-        # cur.execute("select * from administrator")
+        # cur.execute("select * from Users")
         # rows= cur.fetchall();
         #
         # for row in rows:
@@ -144,10 +147,14 @@ def logout():
     flash('You were logged out.')
     return redirect(url_for('welcome'))
 
-DATABASE = 'database.db'
+cnx= {'host': 'west-2-mysql-gymplanner.csssif3kpxyv.us-west-2.rds.amazonaws.com',
+  'username': 'awsuser',
+  'password': 'zsy13654522998',
+  'db': 'GymPlanner'}
+  
+#DATABASE = 'abc.sql'
 def get_db():
-    db = psycopg2.connect("dbname='database' user='postgres' host='localhost' password='580430'")
-
+    db = pymysql.connect(cnx['host'],cnx['username'],cnx['password'], cnx['db'])
     return db
 
 @app.teardown_appcontext
@@ -184,26 +191,24 @@ def reservation():
     return render_template('reservations/index.html')
 
 
-@app.route('/buslist')
+@app.route('/buslist', methods=['GET', 'POST'])
 @login_required
 def buslist2():
+    bus_line = None
+    time1 = None
+    time2=None
+    if request.method == 'POST':
+        bus_line=request.form['bus_line']
+        time1=request.form['time1']
+        time2=request.form['time2']
+
     db = get_db()
     cur=db.cursor()
-    if request.values.has_key('restaurant_id') and len(request.values['restaurant_id']) > 0:
-        if request.values.has_key('waiting'):
-            cur.execute("select * from waitlist WHERE restaurant_id=%s AND unlisted_at IS NULL ORDER BY listed_at", request.values['restaurant_id'])
-        else:
-            cur.execute("select * from waitlist WHERE restaurant_id=%s ORDER BY listed_at", request.values['restaurant_id'])
-    else:
-        if request.values.has_key('waiting'):
-            cur.execute("select * from waitlist WHERE unlisted_at IS NULL ORDER BY listed_at")
-        else:
-            cur.execute("select * from waitlist ORDER BY listed_at")
-    rows = cur.fetchall();
-    return render_template("buslist/index.html", rows=rows)
-
-
-
+    cur.execute("select line, departure_time from BUS WHERE line=%s and departure_time > CAST(%s AS time) and departure_time < CAST(%s AS time)",(str(bus_line),str(time1),str(time2),))
+    #cur.execute("select line, departure_time from BUS WHERE line=%s",str(bus_line))
+    result = cur.fetchall()
+        
+    return render_template("buslist/index.html", rows=result)
 
 
 if __name__ == '__main__':
