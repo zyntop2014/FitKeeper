@@ -3,44 +3,75 @@
 
 <h2 align="center"> BUS Information </h2>
 
-<form  method = "GET">
+<form  method = "POST">
   <h3>Check Bus</h3>
   BusLine
-  <select name="sort_type">
-    <option value="customer number"> Red </option>
-    <option value="waiting time"> Green </option>
-    <option value="waiting time"> Blue </option>
+  <select name="bus_line">
+  <option selected="selected"  disabled="disabled"></option>
+    <option value="Red Line"> Red </option>
+    <option value="Greed Line"> Green </option>
+    <option value="Blue Line"> Blue </option>
   </select> 
   From
-  <select name="sort_type">
-    <option value="customer number"> 8:00am </option>
-    <option value="waiting time"> 10:00pm</option>
-    <option value="waiting time"> 11:00 pm </option>
+  <select name="time1">
+  <option selected="selected"  disabled="disabled"></option>
+    <option value="8:00:00"> 8:00am</option>
+    <option value="8:30:00"> 8:30am</option>
+    <option value="9:00:00"> 9:00am</option>
+    <option value="9:30:00"> 9:30am</option>
+    <option value="10:30:00"> 10:30am</option>
+    <option value="11:30:00"> 11:30am</option>
+    <option value="12:30:00"> 12:30am</option>
+    <option value="13:30:00"> 13:30pm</option>
+    <option value="14:30:00"> 14:30pm</option>
+    <option value="15:30:00"> 15:30pm</option>
+    <option value="16:30:00"> 16:30pm</option>
+    <option value="17:30:00"> 17:30pm</option>
+    <option value="18:30:00"> 18:30pm</option>
+    <option value="19:30:00"> 19:30pm</option>
+    <option value="20:30:00"> 20:30pm</option>
+    <option value="21:30:00"> 21:30pm</option>
+    <option value="22:30:00"> 22:30pm</option>
+    <option value="23:30:00"> 23:30pm </option>
+    <option value="24:30:00"> 00:30am </option>
   </select>
   To
-    <select name="sort_type">
-    <option value="customer number"> 8:00am </option>
-    <option value="waiting time"> 10:00pm</option>
-    <option value="waiting time"> 11:00 pm </option>
+    <select name="time2">
+    <option selected="selected"  disabled="disabled"></option>
+    <option value="8:00:00"> 8:00am</option>
+    <option value="8:30:00"> 8:30am</option>
+    <option value="9:00:00"> 9:00am</option>
+    <option value="9:30:00"> 9:30am</option>
+    <option value="10:30:00"> 10:30am</option>
+    <option value="11:30:00"> 11:30am</option>
+    <option value="12:30:00"> 12:30am</option>
+    <option value="13:30:00"> 13:30pm</option>
+    <option value="14:30:00"> 14:30pm</option>
+    <option value="15:30:00"> 15:30pm</option>
+    <option value="16:30:00"> 16:30pm</option>
+    <option value="17:30:00"> 17:30pm</option>
+    <option value="18:30:00"> 18:30pm</option>
+    <option value="19:30:00"> 19:30pm</option>
+    <option value="20:30:00"> 20:30pm</option>
+    <option value="21:30:00"> 21:30pm</option>
+    <option value="22:30:00"> 22:30pm</option>
+    <option value="23:30:00"> 23:30pm </option>
+    <option value="24:30:00"> 00:30am </option>
   </select>
-  
-  <input type = "submit" value = "submit" /><br>
+   <button type="button"  onclick='this.form.submit()'>Search</button>
+ 
 </form>
-
-
-
-
+ 
 
 <br>
 <div class="table-responsive-vertical shadow-z-1">
   <!-- Table starts here -->
-  <table id="table" class="table table-hover table-mc-light-blue">
+  <table id="table" class="table table-hover table-mc-light-blue" >
     <thead>
       <tr>
         <th>Bus Line</th>
         <th>Available Time</th>
         
-
       </tr>
     </thead>
     <tbody>
@@ -52,41 +83,7 @@
         <td> {{row[2]}}</td>
         <td>{{row[3]}}</td>
         <td>{{row[4]}}</td>
-        <td>
-
-          <form action="{{ url_for('waitlists.delete') }}" method=post class=deletewaitlist>
-            <input type = hidden name = "restaurant_id" value = "{{row[0]}}"/>
-            <input type = hidden name = "customer_id" value = "{{row[1]}}"/>
-            <input type = hidden name = "party_datetime" value = "{{row[2]}}"/>
-            <input type=submit value = Delete></input>
-          </form>
-
-
-        </td>
-
-        <td>
-
-          <form action="{{ url_for('waitlists.edit') }}" method=get >
-            <input type = hidden name = "restaurant_id" value = "{{row[0]}}"/>
-            <input type = hidden name = "customer_id" value = "{{row[1]}}"/>
-            <input type = hidden name = "party_datetime" value = "{{row[2]}}"/>
-            <input type=submit value = Edit></input>
-          </form>
-
-
-        </td>
-
-        {% if False %}
-        <td>
-          <form action="url_for('unlistcustomer')" method=post class=deletewaitlist>
-            <input type = hidden name = "restaurant_id" value = "{{row[0]}}"/>
-            <input type = hidden name = "customer_id" value = "{{row[1]}}"/>
-            <input type = hidden name = "party_datetime" value = "{{row[2]}}"/>
-            <input type=submit value = Unlist></input>
-          </form>
-        </td>
-        {% endif %}
-
+        
 
       </tr>
       {% endfor %}
