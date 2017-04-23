@@ -32,3 +32,6 @@ def add_event(remote_app, access_token, start_time='0', end_time='0',
                 #   , method='POST', headers=headers)
     print "Add event HTTP code:", resp.status
     return None
+
+def cal_format_time(time):
+    return time.split('.')[0]+GMT_OFF

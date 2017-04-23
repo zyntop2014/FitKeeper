@@ -20,18 +20,16 @@ def allowed_file(filename):
 UPLOAD_FOLDER = 'static/img/'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 GMT_OFF = '-04:00'
-
-app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 GOOGLE_CLIENT_ID = '852263075688-3u85br5hvvk6ajvrafavv3lpupns3va7.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'l7a5ztJX5bW9iZBTq81GP-pg'
 REDIRECT_URI = '/oauth2callback'
 SECRET_KEY = '8(2:W\x909\x01\xb3F\xd0\x11\x85\xc56\xd1h\xf5\x1bu\r[\xab\x9f'
 
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.secret_key = SECRET_KEY
-oauth = OAuth()
 
+oauth = OAuth()
 google = oauth.remote_app(
 	'google',
 	base_url='https://www.google.com/accounts/',
@@ -89,7 +87,7 @@ def g_index():
     google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
     session['calendar'] = google_calendar['items']
-    add_event(google, session['access_token'][0])
+    add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summary='')
     print get_busy_time(session['calendar'])
 
     # user_id = profile['id']
@@ -115,7 +113,7 @@ def g_index():
     # print json.dumps(calendar, indent=4, sort_keys=True)
     return render_template('index.html')
 
-### Google Authorization ###
+######################## Google Authorization ############################
 @app.route('/google_login')
 def google_login():
     callback=url_for('authorized', _external=True)
@@ -131,7 +129,7 @@ def authorized(resp):
 @google.tokengetter
 def get_access_token():
     return session.get('access_token')
-### Google Authorization ends ###
+####################### Google Authorization ends ########################
 
 
 @app.route('/welcome')
