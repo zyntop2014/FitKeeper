@@ -1,0 +1,60 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<html>
+    <head>
+        <title>User Profile Information</title>
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+        <script type="text/javascript">
+            function validateForm() {
+                var x= document.forms["information"]["yourage"].value;
+                if(x == "") {
+                    alert("Age must be filled out");
+                    return false;
+                    };
+
+                if(isNaN(x)) {
+                    alert("Input is not a number");
+                    return false;
+                    };
+                x = Number(x);
+                if(x<=0 || x >100 ){
+                    alert("Input is out of range");
+                    return false;
+                    };
+
+                var address= document.forms["information"]["youraddress"].value;
+                if(address == "") {
+                    alert("Address must be filled out");
+                    return false;
+                    };                           
+            }
+        </script>
+    </head>
+    <body>
+        <div id="container">
+            <div class="title">
+                <h1>Please fill the form</h1>
+            </div>
+            <div id="content">
+                 <form name="information" method="post" action="{{ url_for('post') }}", onsubmit="return validateForm()"  >
+                  <label for="yourname">Please enter your name:</label>
+                  <input type="text" name="yourname" /><br />
+                  <label for="youremail">Please enter your email:</label>
+                  <input type="text" name="youremail" /><br />
+                  <label for="youraddress">Please enter your address:</label>
+                  <input type="text" name="youraddress" /><br />
+                  <label for="yourage">Please enter your age:</label>
+                  <input type="text" name="yourage" /><br />
+                  <label for="yourgender">Please enter your gender:</label> <br>
+                  <input type="radio" name="gender" value="male" checked> Male<br>
+                  <input type="radio" name="gender" value="female"> Female<br>
+                  <input type="radio" name="gender" value="other"> Other <br><br>
+                  <input type="submit" />
+                </form>
+            </div>            
+        </div>
+
+        
+    </body>
+{% endblock %}
+

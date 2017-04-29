@@ -210,6 +210,20 @@ def buslist2():
         
     return render_template("buslist/index.html", rows=result)
 
+@app.route('/profile')
+def form():
+    return render_template('form_submit.html')
+
+
+@app.route('/post/', methods=['POST'])
+def post():
+    name=request.form['yourname']
+    email=request.form['youremail']
+    address=request.form['youraddress']
+    gender=request.form['gender']
+    age=request.form['yourage']
+    #return render_template('form_action.html', age=age, name=name, email=email, gender=gender, address=address)
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
