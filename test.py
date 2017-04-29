@@ -82,13 +82,13 @@ def g_index():
         return res.read()
 
     # Successful login. Extract user information
-
+    session['logged_in'] = True
     profile = json.loads(res.read())
     google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
-    session['calendar'] = google_calendar['items']
-    add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summury='')
-    print get_busy_time(session['calendar'])
+    #session['calendar'] = google_calendar['items']
+    #add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summury='')
+    #print get_busy_time(session['calendar'])
 
     # user_id = profile['id']
     # family_name = profile['family_name']
@@ -249,8 +249,11 @@ def post():
     address=request.form['youraddress']
     gender=request.form['gender']
     age=request.form['yourage']
-    #return render_template('form_action.html', age=age, name=name, email=email, gender=gender, address=address)
-    return render_template('index.html')
+
+    
+
+    return render_template('form_action.html', age=age, name=name, email=email, gender=gender, address=address)
+    #return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
