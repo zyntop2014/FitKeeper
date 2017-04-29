@@ -87,7 +87,7 @@ def g_index():
     google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
     session['calendar'] = google_calendar['items']
-    add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summary='')
+    add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summury='')
     print get_busy_time(session['calendar'])
 
     # user_id = profile['id']
@@ -175,9 +175,9 @@ def logout():
     return redirect(url_for('welcome'))
 
 cnx= {'host': 'west-2-mysql-gymplanner.csssif3kpxyv.us-west-2.rds.amazonaws.com',
-  'username': 'awsuser',
-  'password': 'zsy13654522998',
-  'db': 'GymPlanner'}
+      'username': 'awsuser',
+      'password': 'zsy13654522998',
+      'db': 'GymPlanner'}
 
 #DATABASE = 'abc.sql'
 def get_db():
