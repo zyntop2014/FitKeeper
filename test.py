@@ -2,11 +2,14 @@ from flask import Flask, render_template, request, g, redirect, url_for, session
 from flask_oauth import OAuth
 import sqlite3 as sql
 from functools import wraps
-import psycopg2, json
-import os
+import psycopg2, json, datetime
+import os, json
 from werkzeug.utils import secure_filename
 import pymysql
 from datetime import datetime as dt
+import sys
+sys.path.append('functions/')
+from mycalendar import get_busy_time, add_event
 #import transloc
 
 def allowed_file(filename):
@@ -16,25 +19,24 @@ def allowed_file(filename):
 
 UPLOAD_FOLDER = 'static/img/'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
-
-app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
+GMT_OFF = '-04:00'
 GOOGLE_CLIENT_ID = '852263075688-3u85br5hvvk6ajvrafavv3lpupns3va7.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'l7a5ztJX5bW9iZBTq81GP-pg'
 REDIRECT_URI = '/oauth2callback'
-SECRET_KEY = 'development key'
+SECRET_KEY = '8(2:W\x909\x01\xb3F\xd0\x11\x85\xc56\xd1h\xf5\x1bu\r[\xab\x9f'
 
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.secret_key = SECRET_KEY
-oauth = OAuth()
 
+oauth = OAuth()
 google = oauth.remote_app(
 	'google',
 	base_url='https://www.google.com/accounts/',
 	authorize_url='https://accounts.google.com/o/oauth2/auth',
 	request_token_url=None,
-	request_token_params={'scope': 'https://www.googleapis.com/auth/userinfo.email',
-		'response_type': 'code'},
+	request_token_params={'scope': 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/calendar',
+		                'response_type': 'code'},
 	access_token_url='https://accounts.google.com/o/oauth2/token',
 	access_token_method='POST',
 	access_token_params={'grant_type': 'authorization_code'},
@@ -59,15 +61,19 @@ def g_index():
     if access_token is None:
         return redirect(url_for('google_login'))
 
-    access_token = access_token[0]
+    access_token = access_token[0]  # secret = access_token[1]
     from urllib2 import Request, urlopen, URLError
     headers = {'Authorization': 'OAuth '+access_token}
     req = Request('https://www.googleapis.com/oauth2/v1/userinfo',
                   None, headers)
+    req_cal = Request('https://www.googleapis.com/calendar/v3/calendars/primary/events',
+                      None, headers)
     # print type(req)
     try:
         res = urlopen(req)
-        print (res)
+        res_cal = urlopen(req_cal)
+        # print (res)
+        # print 'res_cal: ',res_cal
     except URLError, e:
         if e.code == 401:
             # Unauthorized - bad token
@@ -75,26 +81,43 @@ def g_index():
             return redirect(url_for('google_login'))
         return res.read()
 
-    # Login successfully. Extract user's information
-    session['logged_in'] = True
-    profile = json.loads(res.read())
-    user_id = profile['id']
-    family_name = profile['family_name']
-    given_name = profile['given_name']
-    name = profile['name']
-    email = profile['email']
-    photo_url = profile['picture']
-    #gender = profile['gender']
-    #link = profile['link']
+    # Successful login. Extract user information
 
-    print "user_id: %s  family name:%s  given name:%s  name:%s  email:%s\n"%(user_id, family_name, given_name, name, email)
+    profile = json.loads(res.read())
+    google_calendar = json.loads(res_cal.read())
+    session['profile'] = profile
+    session['calendar'] = google_calendar['items']
+    add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summury='')
+    print get_busy_time(session['calendar'])
+
+    # user_id = profile['id']
+    # family_name = profile['family_name']
+    # given_name = profile['given_name']
+    # name = profile['name']
+    # email = profile['email']
+    # photo_url = profile['picture']
+    # #gender = profile['gender']
+    # #link = profile['link']
+    # session['logged_in'] = True
+    # session['user_id'] = user_id
+    # print "user_id:%s  family name:%s  given name:%s  name:%s  email:%s\n"%(user_id, family_name, given_name, name, email)
+    # cal.get_all_events(google)
+
+    # now = datetime.datetime.now().isoformat()+GMT_OFF
+    # end_of_day = datetime.datetime.now().date().isoformat()+'T23:59:59.999999'+GMT_OFF
+    # for event in calendar['items']:
+    #     if event['start']['dateTime'] > now and \
+    #         event['end']['dateTime'] < end_of_day:
+    #         print json.dumps(event, indent=4, sort_keys=True)
+    # print "calendar list: "
+    # print json.dumps(calendar, indent=4, sort_keys=True)
     return render_template('index.html')
 
+######################## Google Authorization ############################
 @app.route('/google_login')
 def google_login():
     callback=url_for('authorized', _external=True)
     return google.authorize(callback=callback)
-
 
 @app.route(REDIRECT_URI)
 @google.authorized_handler
@@ -106,6 +129,7 @@ def authorized(resp):
 @google.tokengetter
 def get_access_token():
     return session.get('access_token')
+####################### Google Authorization ends ########################
 
 
 @app.route('/welcome')
@@ -143,15 +167,18 @@ def login():
 @app.route('/logout')
 @login_required
 def logout():
+    session.pop('user_id', None)
     session.pop('logged_in', None)
+    session.pop('profile', None)
+    session.pop('calendar', None)
     flash('You were logged out.')
     return redirect(url_for('welcome'))
 
 cnx= {'host': 'west-2-mysql-gymplanner.csssif3kpxyv.us-west-2.rds.amazonaws.com',
-  'username': 'awsuser',
-  'password': 'zsy13654522998',
-  'db': 'GymPlanner'}
-  
+      'username': 'awsuser',
+      'password': 'zsy13654522998',
+      'db': 'GymPlanner'}
+
 #DATABASE = 'abc.sql'
 def get_db():
     db = pymysql.connect(cnx['host'],cnx['username'],cnx['password'], cnx['db'])
@@ -207,7 +234,7 @@ def buslist2():
     cur.execute("select line, departure_time from BUS WHERE line=%s and departure_time > CAST(%s AS time) and departure_time < CAST(%s AS time)",(str(bus_line),str(time1),str(time2),))
     #cur.execute("select line, departure_time from BUS WHERE line=%s",str(bus_line))
     result = cur.fetchall()
-        
+
     return render_template("buslist/index.html", rows=result)
 
 @app.route('/profile')
