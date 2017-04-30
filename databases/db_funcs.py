@@ -37,13 +37,13 @@ def user_init(db, profile):
         try:
             cur.execute(
                 "INSERT INTO USERS \
-                (uid, name, email, family_name, given_name, gender, dob, bas_ctr, \
+                (uid, name, email, family_name, given_name, gender, bas_ctr, \
                 str_ctr, car_ctr, swi_ctr, squ_ctr, total_ctr, rating, rating_ctr, login_time) \
                 VALUES \
-                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (str(profile['id']), str(profile['name']), str(profile['email']),
                  str(profile['family_name']), str(profile['given_name']),
-                 str(profile['gender']), '1992-01-01', str(0), str(0), str(0),
+                 str(profile['gender']), str(0), str(0), str(0),
                  str(0), str(0), str(0), str(0.0), str(0.0), str(0.0),))
             db.commit()
         except:
