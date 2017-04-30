@@ -84,11 +84,11 @@ def g_index():
     # Successful login. Extract user information
     session['logged_in'] = True
     profile = json.loads(res.read())
-    google_calendar = json.loads(res_cal.read())
+    #google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
     #session['calendar'] = google_calendar['items']
-    #add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summury='')
-    #print get_busy_time(session['calendar'])
+    # add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summury='')
+    # print get_busy_time(session['calendar'])
 
     # user_id = profile['id']
     # family_name = profile['family_name']
@@ -98,11 +98,11 @@ def g_index():
     # photo_url = profile['picture']
     # #gender = profile['gender']
     # #link = profile['link']
-    # session['logged_in'] = True
+    
     # session['user_id'] = user_id
     # print "user_id:%s  family name:%s  given name:%s  name:%s  email:%s\n"%(user_id, family_name, given_name, name, email)
     # cal.get_all_events(google)
-
+ 
     # now = datetime.datetime.now().isoformat()+GMT_OFF
     # end_of_day = datetime.datetime.now().date().isoformat()+'T23:59:59.999999'+GMT_OFF
     # for event in calendar['items']:
@@ -237,25 +237,6 @@ def buslist2():
 
     return render_template("buslist/index.html", rows=result)
 
-@app.route('/profile')
-def form():
-   
-    return render_template('information_submit.html')
-
-
-@app.route('/post/', methods=['POST'])
-def post():
-    name=request.form['yourname']
-    email=request.form['youremail']
-    address=request.form['youraddress']
-    gender=request.form['gender']
-    birthdate=request.form['yourdate']
-
-    print gender, birthdate
-    
-
-    return render_template('form_action.html', name=name, email=email, gender=gender, address=address)
-    #return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

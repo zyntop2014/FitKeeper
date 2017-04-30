@@ -3,16 +3,40 @@
 
         <!-- Jumbotron Header -->
         <header class="jumbotron hero-spacer">
-            <h1 >Welcome to <em>GymPlanner</em>!</h1>
+            <h1 class="text-center">Welcome to <em>GymPlanner</em>!</h1>
+
+            
             <hr>
             
 
             <!-- Page Features -->
-        <div class="row text-center", align='center'>
+        <div class="row text-center">
+        <h2>Find friends</h2> 
 
-            <div class="col-md-3 col-sm-6 hero-feature">
+        <div class="col-sm-12 hero-feature">
+        <div class="well">
+        
+           <select>
+  <option value="volvo">Basketball</option>
+  <option value="saab">Swimming</option>
+  <option value="opel">Running</option>
+  <option value="audi">Yoga</option>
+  <option value="audi">Racketball</option>
+</select>
+        </div>
+        </div>
+        </div>
+        
+  
+
+        <div class="row text-center", align='center'>
+        <h2>Make reservation</h2> 
+
+
+            <div class="col-md-4 hero-feature">
                 <div class="thumbnail">
-                    <img src="" alt="" height="400" width="420">
+
+                    <img src="{{ url_for('static', filename='img/stridemachine.jpeg') }}" class="img-circle" alt="Cinque Terre" height="200" width="210">
                     <div class="caption">
                         <h3>Stride Machine</h3>
                         
@@ -24,23 +48,11 @@
                 </div>
             </div>
 
-
-            <div class="col-md-3 col-sm-6 hero-feature">
-                <div class="thumbnail">
-                    <img src="" alt="" height="400" width="420">
-                    
-                </div>
-            </div>
             
-        </div>
-        <!-- /.row -->
-
-         <!-- Page Features -->
-        <div class="row text-center">
-
-            <div class="col-md-3 col-sm-6 hero-feature">
+        
+            <div class="col-sm-4 hero-feature">
                 <div class="thumbnail">
-                    <img src="" alt="" height="400" width="420">
+                    <img src="{{ url_for('static', filename='img/eplicalmachine.jpeg') }}" class="img-circle" alt="Cinque Terre" height="200" width="210">
                     <div class="caption">
                         <h3>Eliptical Machine</h3>
                         
@@ -53,22 +65,9 @@
             </div>
 
 
-            <div class="col-md-3 col-sm-6 hero-feature">
+            <div class="col-sm-4 hero-feature">
                 <div class="thumbnail">
-                    <img src="" alt="" height="400" width="420">
-                    
-                </div>
-            </div>
-            
-        </div>
-        <!-- /.row -->
-
-         <!-- Page Features -->
-        <div class="row text-center">
-
-            <div class="col-md-3 col-sm-6 hero-feature">
-                <div class="thumbnail">
-                    <img src="" alt="" height="400" width="420">
+                    <img src="{{ url_for('static', filename='img/steathmachine.png') }}" class="img-circle" alt="Cinque Terre" height="160" width="170">
                     <div class="caption">
                         <h3>Streanth Machine</h3>
                         
@@ -81,15 +80,11 @@
             </div>
 
 
-            <div class="col-md-3 col-sm-6 hero-feature">
-                <div class="thumbnail">
-                    <img src="" alt="" height="400" width="420">
-                    
-                </div>
-            </div>
             
         </div>
-        <!-- /.row -->
+
+        
+         
         
   </header>
 {% endblock %}
