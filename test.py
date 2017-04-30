@@ -22,7 +22,6 @@ def allowed_file(filename):
 
 UPLOAD_FOLDER = 'static/img/'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
-GMT_OFF = '-04:00'
 GOOGLE_CLIENT_ID = '852263075688-3u85br5hvvk6ajvrafavv3lpupns3va7.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'l7a5ztJX5bW9iZBTq81GP-pg'
 REDIRECT_URI = '/oauth2callback'
@@ -108,14 +107,6 @@ def g_index():
     # print "user_id:%s  family name:%s  given name:%s  name:%s  email:%s\n"%(user_id, family_name, given_name, name, email)
     # cal.get_all_events(google)
 
-    # now = datetime.datetime.now().isoformat()+GMT_OFF
-    # end_of_day = datetime.datetime.now().date().isoformat()+'T23:59:59.999999'+GMT_OFF
-    # for event in calendar['items']:
-    #     if event['start']['dateTime'] > now and \
-    #         event['end']['dateTime'] < end_of_day:
-    #         print json.dumps(event, indent=4, sort_keys=True)
-    # print "calendar list: "
-    # print json.dumps(calendar, indent=4, sort_keys=True)
     return render_template('index.html')
 
 ######################## Google Authorization ############################
