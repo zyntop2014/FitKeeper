@@ -15,7 +15,7 @@ def get_busy_time(events):
 
 
 def add_event(remote_app, access_token, start_time='0', end_time='0',
-            summury=''):
+            summary=''):
     headers = {'Authorization': 'OAuth '+access_token}
     event = {
       "start": {

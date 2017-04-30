@@ -1,0 +1,6 @@
+{
+    "host": "west-2-mysql-gymplanner.csssif3kpxyv.us-west-2.rds.amazonaws.com",
+    "username": "awsuser",
+    "password": "zsy13654522998",
+    "db": "GymPlanner"
+}

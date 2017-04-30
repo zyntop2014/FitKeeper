@@ -9,7 +9,10 @@ import pymysql
 from datetime import datetime as dt
 import sys
 sys.path.append('functions/')
-from mycalendar import get_busy_time, add_event
+sys.path.append('databases/')
+from mycalendar import *
+from db_funcs import *
+
 #import transloc
 
 def allowed_file(filename):
@@ -86,11 +89,11 @@ def g_index():
     profile = json.loads(res.read())
     google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
-    session['calendar'] = google_calendar['items']
-    add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summury='')
-    print get_busy_time(session['calendar'])
-
-    # user_id = profile['id']
+    # session['calendar'] = google_calendar['items']  # When not commented out, buslist cannot be accessed
+    # add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summary='')
+    # print get_busy_time(session['calendar'])
+    print json.dumps(profile, indent=4)
+    user_id = profile['id']
     # family_name = profile['family_name']
     # given_name = profile['given_name']
     # name = profile['name']
@@ -98,8 +101,10 @@ def g_index():
     # photo_url = profile['picture']
     # #gender = profile['gender']
     # #link = profile['link']
-    # session['logged_in'] = True
-    # session['user_id'] = user_id
+    session['logged_in'] = True
+    session['user_id'] = user_id
+    db = get_db()
+    user_init(db, profile)
     # print "user_id:%s  family name:%s  given name:%s  name:%s  email:%s\n"%(user_id, family_name, given_name, name, email)
     # cal.get_all_events(google)
 
@@ -136,6 +141,7 @@ def get_access_token():
 def welcome():
     return render_template('welcome.html')  # render a template
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
@@ -164,6 +170,7 @@ def login():
             error = 'Invalid Credentials. Please try again.'
     return render_template('login.html', error=error)
 
+
 @app.route('/logout')
 @login_required
 def logout():
@@ -174,21 +181,23 @@ def logout():
     flash('You were logged out.')
     return redirect(url_for('welcome'))
 
-cnx= {'host': 'west-2-mysql-gymplanner.csssif3kpxyv.us-west-2.rds.amazonaws.com',
-      'username': 'awsuser',
-      'password': 'zsy13654522998',
-      'db': 'GymPlanner'}
 
-#DATABASE = 'abc.sql'
 def get_db():
-    db = pymysql.connect(cnx['host'],cnx['username'],cnx['password'], cnx['db'])
-    return db
+    """
+    Opens a new database connection if there is none yet for the
+    current application context.
+    """
+    if not hasattr(g, 'mysql_db'):
+        g.mysql_db = connect_db()
+    return g.mysql_db
+
 
 @app.teardown_appcontext
 def close_connection(exception):
-    db = getattr(g, '_database', None)
+    db = getattr(g, 'mysql_db', None)
     if db is not None:
         db.close()
+
 
 @app.route('/')
 @login_required
@@ -223,18 +232,14 @@ def reservation():
 def buslist2():
     bus_line = None
     time1 = None
-    time2=None
+    time2 = None
     if request.method == 'POST':
-        bus_line=request.form['bus_line']
-        time1=request.form['time1']
-        time2=request.form['time2']
+        bus_line = request.form['bus_line']
+        time1 = request.form['time1']
+        time2 = request.form['time2']
 
     db = get_db()
-    cur=db.cursor()
-    cur.execute("select line, departure_time from BUS WHERE line=%s and departure_time > CAST(%s AS time) and departure_time < CAST(%s AS time)",(str(bus_line),str(time1),str(time2),))
-    #cur.execute("select line, departure_time from BUS WHERE line=%s",str(bus_line))
-    result = cur.fetchall()
-
+    result = find_bus(db, bus_line, time1, time2)
     return render_template("buslist/index.html", rows=result)
 
 
