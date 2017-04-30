@@ -57,6 +57,7 @@ def login_required(f):
             return redirect(url_for('login'))
     return wrap
 
+
 @app.route('/google')
 def g_index():
     access_token = session.get('access_token')
@@ -104,10 +105,12 @@ def g_index():
     session['user_id'] = profile['id']
     db = get_db()
     user_init(db, profile)
-    # print "user_id:%s  family name:%s  given name:%s  name:%s  email:%s\n"%(user_id, family_name, given_name, name, email)
-    # cal.get_all_events(google)
+
+    if is_profile_complete(db, session['user_id']) is False:
+        return render_template('information_submit.html')
 
     return render_template('index.html')
+
 
 ######################## Google Authorization ############################
 @app.route('/google_login')

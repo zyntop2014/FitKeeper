@@ -2,6 +2,7 @@ import json, pymysql
 
 
 # Get info needed for db connection
+# with open('db_info.json') as db_info_file:
 with open('databases/db_info.json') as db_info_file:
     db_info = json.load(db_info_file)
 
@@ -66,21 +67,32 @@ def find_bus(db, bus_line, time1, time2):
         Query result
     """
     cur = db.cursor()
-    cur.execute("select line, departure_time from BUS \
+    cur.execute("SELECT line, departure_time FROM BUS \
                  WHERE line=%s \
                  and departure_time > CAST(%s AS time) \
                  and departure_time < CAST(%s AS time)",
                  (str(bus_line), str(time1), str(time2),))
-    
-    result = cur.fetchall()    
+    result = cur.fetchall()
     return result
 
+
+def is_profile_complete(db, id):
+    """
+    Check if user's profile is complete
+    (address is not None && dob is not None).
+    """
+    cur = db.cursor()
+    cur.execute("SELECT addr, dob FROM USERS \
+                 WHERE uid = %s",
+                 (str(id)))
+    result = cur.fetchall()
+    print result, len(result)
+    if not len(result):
+        return False
+    return True
 
 
 if __name__ == '__main__':
     db = connect_db()
-    print find_bus(db, 'Blue line', '08:05:00', '09:08:00')
-    if len(find_bus(db, 'Blue line', '08:05:00', '09:08:00')):
-        print "hahah"
-    else:
-        print "hohoho"
+    s = is_profile_complete(db, '105461334228887033966')
+    print s
