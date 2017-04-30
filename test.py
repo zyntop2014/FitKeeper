@@ -134,7 +134,7 @@ def get_access_token():
 
 @app.route('/welcome')
 def welcome():
-    return render_template('welcome.html')  # render a template
+    return render_template('test.html')  # render a template
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -239,7 +239,8 @@ def buslist2():
 
 @app.route('/profile')
 def form():
-    return render_template('form_submit.html')
+   
+    return render_template('information_submit.html')
 
 
 @app.route('/post/', methods=['POST'])
@@ -248,11 +249,12 @@ def post():
     email=request.form['youremail']
     address=request.form['youraddress']
     gender=request.form['gender']
-    age=request.form['yourage']
-
+    birthdate=request.form['yourdate']
+    
+    print gender, birthdate
     
 
-    return render_template('form_action.html', age=age, name=name, email=email, gender=gender, address=address)
+    return render_template('form_action.html', name=name, email=email, gender=gender, address=address)
     #return render_template('index.html')
 
 if __name__ == '__main__':
