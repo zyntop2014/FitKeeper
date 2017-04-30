@@ -134,7 +134,7 @@ def get_access_token():
 
 @app.route('/welcome')
 def welcome():
-    return render_template('test.html')  # render a template
+    return render_template('welcome.html')  # render a template
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -250,7 +250,7 @@ def post():
     address=request.form['youraddress']
     gender=request.form['gender']
     birthdate=request.form['yourdate']
-    
+
     print gender, birthdate
     
 
