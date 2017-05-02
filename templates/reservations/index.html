@@ -1,15 +1,71 @@
 {% extends "layouts/base.html" %}
 {% block content %}
-    <title>My profile</title>
-    <h1>My profile</h1>
-      <img src="{{ url_for('static', filename='img/1.jpg') }}"></img>
- 	 <h5> Name: Robert </h2>
- 	 <h5> UNI: yz3054
+<body>
+<br><br>
+<div class="container-fluid well span6">
+  <div class="row-fluid">
+        <div class="col-md-4">
+        <div class="span2" >
+        <img src="https://secure.gravatar.com/avatar/de9b11d0f9c0569ba917393ed5e5b3ab?s=140&r=g&d=mm" class="img-circle", height="200", width="200">
+                 
+         <form method=post enctype=multipart/form-data>
+         <br><p><input type=file name=file>
+            <input type=submit value=Upload>
+         </form>
 
-    <form method=post enctype=multipart/form-data>
-      <p><input type=file name=file>
-         <input type=submit value=Upload>
-    </form>
+        </div>
+        </div>
+        
+        <div class="col-md-4">
+        <div class="span2">
+            <h3>Robert Brown</h3>
+            <h6>Email: MyEmail@servidor.com</h6>
+            <h6>Ubication: Colombia</h6>
+            <h6>DateOfBirth: 06/10/1993</h6>
+            <h6><a href="#">More... </a></h6>
+            <p> <i class="glyphicon glyphicon-envelope"></i> masterwayne@batman.com
+                <br
+                /> <i class="glyphicon glyphicon-globe"></i> www.bootsnipp.com
+                <br /> <i class="glyphicon glyphicon-gift"></i> January 30, 1974</p>
+        </div>
+        </div>
+        
+        <div class="col-md-4">
+        <div class="span2">
+            <div class="btn-group">
+                <a class="btn dropdown-toggle btn-info" data-toggle="dropdown" href="#">
+                    Action 
+                    <span class="icon-cog icon-white"></span><span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="#"><span class="icon-wrench"></span> Modify</a></li>
+                    <li><a href="#"><span class="icon-trash"></span> Delete</a></li>
+                </ul>
+            </div>
+
+
+
+             <div class="btn-group">
+                            <button type="button" class="btn btn-primary">
+                                Social</button>
+                            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                                <span class="caret"></span><span class="sr-only">Social</span>
+                            </button>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a href="#">Twitter</a></li>
+                                <li><a href="https://plus.google.com/+Jquery2dotnet/posts">Google +</a></li>
+                                <li><a href="https://www.facebook.com/jquery2dotnet">Facebook</a></li>
+                                <li class="divider"></li>
+                                <li><a href="#">Github</a></li>
+                            </ul>
+            </div>
+
+
+
+        </div>
+        </div>
+</div>
+</div>
 
     <br>
 
@@ -65,4 +121,5 @@
 </form>
 
 
+</body>
 {% endblock %}
