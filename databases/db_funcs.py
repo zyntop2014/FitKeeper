@@ -29,7 +29,7 @@ def user_init(db, profile):
     If not, initialize the profile, write into database.
     """
     if not profile['picture']:
-        profile['photo'] = "https://lh3.googleusercontent.com/-XdUIqdMkCWA/AAAAAAAAAAI/AAAAAAAAAAA/4252rscbv5M/photo.jpg"
+        profile['picture'] = "https://lh3.googleusercontent.com/-XdUIqdMkCWA/AAAAAAAAAAI/AAAAAAAAAAA/4252rscbv5M/photo.jpg"
     cur = db.cursor()
     cur.execute("select * from USERS \
                  WHERE uid = %s",
