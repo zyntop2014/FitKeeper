@@ -63,7 +63,7 @@ def comp_profile_required(f):
     @wraps(f)
     def wrap(*args, **kwargs):
         if 'comp_info' in session:
-            # print "Check passed. Profile complete."
+            print "Profile completion check passed."
             return f(*args, **kwargs)
         else:
             return redirect(url_for('comp_info'))
@@ -98,6 +98,7 @@ def g_index():
     # Successful login. Extract user information
     session['logged_in'] = True  
     profile = json.loads(res.read())
+    print json.dumps(profile, indent=4, sort_keys=True)
     google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
     session['user_id'] = profile['id']
@@ -240,8 +241,8 @@ def reservation():
 
 
 @app.route('/buslist', methods=['GET', 'POST'])
-@comp_profile_required
 @login_required
+@comp_profile_required
 def buslist2():
     bus_line = None
     time1 = None

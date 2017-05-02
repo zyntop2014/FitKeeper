@@ -50,9 +50,9 @@ def user_init(db, profile):
         except:
             db.rollback()
         
-        print "Initialized user profile."
+        print "[user_init]Initialized user profile."
     else:
-        print "Found user profile in DB."
+        print "[user_init]Found user profile in DB."
     return None
 
 
@@ -93,6 +93,16 @@ def is_profile_complete(db, id):
     return True
 
 
+def find_by_id(db, id):
+    cur = db.cursor()
+    cur.execute("SELECT * FROM USERS  \
+                 WHERE uid = %s",
+                 (str(id)))
+    result = cur.fetchall()
+    print result
+    return None
+
+
 def update_profile(db, id, addr, dob):
     """
     Update user's profile.
@@ -111,7 +121,18 @@ def update_profile(db, id, addr, dob):
     return None
 
 
+def gen_random_data():
+    """
+    Generate random data.
+    Default user picture url:
+        "http://www.imran.com/xyper_images/icon-user-default.png"
+    """
+
+
+
+
 if __name__ == '__main__':
     db = connect_db()
-    s = is_profile_complete(db, '105461334228887033966')
-    print s
+    # s = is_profile_complete(db, '105461334228887033966')
+    # print s
+    find_by_id(db, '101657223560565272570')
