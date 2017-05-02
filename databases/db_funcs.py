@@ -28,7 +28,7 @@ def user_init(db, profile):
     Check if user's profile is in the database.
     If not, initialize the profile, write into database.
     """
-    if not profile['photo']:
+    if not profile['picture']:
         profile['photo'] = "https://lh3.googleusercontent.com/-XdUIqdMkCWA/AAAAAAAAAAI/AAAAAAAAAAA/4252rscbv5M/photo.jpg"
     cur = db.cursor()
     cur.execute("select * from USERS \
