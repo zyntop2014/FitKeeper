@@ -2,6 +2,7 @@ import json, pymysql
 
 
 # Get info needed for db connection
+# with open('db_info.json') as db_info_file:
 with open('databases/db_info.json') as db_info_file:
     db_info = json.load(db_info_file)
 
@@ -37,13 +38,13 @@ def user_init(db, profile):
         try:
             cur.execute(
                 "INSERT INTO USERS \
-                (uid, name, email, family_name, given_name, gender, bas_ctr, \
+                (uid, name, email, family_name, given_name, gender, photo, bas_ctr, \
                 str_ctr, car_ctr, swi_ctr, squ_ctr, total_ctr, rating, rating_ctr, login_time) \
                 VALUES \
-                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (str(profile['id']), str(profile['name']), str(profile['email']),
                  str(profile['family_name']), str(profile['given_name']),
-                 str(profile['gender']), str(0), str(0), str(0),
+                 str(profile['gender']), str(profile['picture']), str(0), str(0), str(0),
                  str(0), str(0), str(0), str(0.0), str(0.0), str(0.0),))
             db.commit()
         except:
@@ -66,21 +67,51 @@ def find_bus(db, bus_line, time1, time2):
         Query result
     """
     cur = db.cursor()
-    cur.execute("select line, departure_time from BUS \
+    cur.execute("SELECT line, departure_time FROM BUS \
                  WHERE line=%s \
-                 and departure_time > CAST(%s AS time) \
-                 and departure_time < CAST(%s AS time)",
+                 AND departure_time > CAST(%s AS time) \
+                 AND departure_time < CAST(%s AS time)",
                  (str(bus_line), str(time1), str(time2),))
-    
-    result = cur.fetchall()    
+    result = cur.fetchall()
+
     return result
 
+
+def is_profile_complete(db, id):
+    """
+    Check if user's profile is complete
+    (address is not None OR dob is not None).
+    """
+    cur = db.cursor()
+    cur.execute("SELECT addr, dob FROM USERS \
+                 WHERE uid = %s",
+                 (str(id)))
+    result = cur.fetchall()
+    # if result == ((None, None),)
+    if (not result[0][0]) or (not result[0][1]):
+        return False
+    return True
+
+
+def update_profile(db, id, addr, dob):
+    """
+    Update user's profile.
+    Write (or overwrite) attributes "addr", "dob", etc.
+    """
+    cur = db.cursor()
+    try:
+        cur.execute("UPDATE USERS \
+                    SET addr = %s, dob = %s",
+                    (str(addr), str(dob)))
+        db.commit()
+        print "Updated user's profile."
+    except:
+        db.rollback()
+    
+    return None
 
 
 if __name__ == '__main__':
     db = connect_db()
-    print find_bus(db, 'Blue line', '08:05:00', '09:08:00')
-    if len(find_bus(db, 'Blue line', '08:05:00', '09:08:00')):
-        print "hahah"
-    else:
-        print "hohoho"
+    s = is_profile_complete(db, '105461334228887033966')
+    print s

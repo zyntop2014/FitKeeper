@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 import pymysql
 from datetime import datetime as dt
 import sys
-sys.path.append('functions/')
+sys.path.append('calendar/')
 sys.path.append('databases/')
 from mycalendar import *
 from db_funcs import *
@@ -57,6 +57,18 @@ def login_required(f):
             return redirect(url_for('login'))
     return wrap
 
+
+# complete profile info required decorator
+def comp_profile_required(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'comp_info' in session:
+            # print "Check passed. Profile complete."
+            return f(*args, **kwargs)
+        else:
+            return redirect(url_for('comp_info'))
+    return wrap
+
 @app.route('/google')
 def g_index():
     access_token = session.get('access_token')
@@ -70,7 +82,7 @@ def g_index():
                   None, headers)
     req_cal = Request('https://www.googleapis.com/calendar/v3/calendars/primary/events',
                       None, headers)
-    # print type(req)
+
     try:
         res = urlopen(req)
         res_cal = urlopen(req_cal)
@@ -84,10 +96,11 @@ def g_index():
         return res.read()
 
     # Successful login. Extract user information
-    session['logged_in'] = True
+    session['logged_in'] = True  
     profile = json.loads(res.read())
     google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
+    session['user_id'] = profile['id']
 
     # session['calendar'] = google_calendar['items']  # When not commented out, buslist cannot be accessed
     # add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summary='')
@@ -100,17 +113,21 @@ def g_index():
     # photo_url = profile['picture']
     # #gender = profile['gender']
     # #link = profile['link']
-    session['logged_in'] = True
-    session['user_id'] = profile['id']
+    
     db = get_db()
     user_init(db, profile)
-    # print "user_id:%s  family name:%s  given name:%s  name:%s  email:%s\n"%(user_id, family_name, given_name, name, email)
-    # cal.get_all_events(google)
-    
+
+
+    if is_profile_complete(db, session['user_id']) is False:
+        return render_template('information_submit.html')
+    else:
+        session['comp_info'] = True
+
 
     return render_template('index.html')
 
-######################## Google Authorization ############################
+
+######## Google Authorization Functions #############
 @app.route('/google_login')
 def google_login():
     callback=url_for('authorized', _external=True)
@@ -126,12 +143,12 @@ def authorized(resp):
 @google.tokengetter
 def get_access_token():
     return session.get('access_token')
-####################### Google Authorization ends ########################
+#####################################################
 
 
 @app.route('/welcome')
 def welcome():
-    return render_template('welcome.html')  # render a template
+    return render_template('welcome.html') 
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -170,6 +187,7 @@ def logout():
     session.pop('logged_in', None)
     session.pop('profile', None)
     session.pop('calendar', None)
+    session.pop('comp_info', None)
     flash('You were logged out.')
     return redirect(url_for('welcome'))
 
@@ -193,12 +211,14 @@ def close_connection(exception):
 
 @app.route('/')
 @login_required
+@comp_profile_required
 def index():
     return render_template('index.html')
 
 
 @app.route('/reservation', methods=['GET', 'POST'])
 @login_required
+@comp_profile_required
 def reservation():
     if request.method == 'POST':
         # check if the post request has the file part
@@ -220,6 +240,7 @@ def reservation():
 
 
 @app.route('/buslist', methods=['GET', 'POST'])
+@comp_profile_required
 @login_required
 def buslist2():
     bus_line = None
@@ -234,22 +255,27 @@ def buslist2():
     result = find_bus(db, bus_line, time1, time2)
     return render_template("buslist/index.html", rows=result)
 
-@app.route('/profile')
-def form():
-   
-    return render_template('information_submit2.html')
+
+@app.route('/comp_info')
+def comp_info():
+    return render_template('information_submit.html')
+
 
 
 @app.route('/post/', methods=['POST'])
 def post():
-    name=request.form['yourname']
-    email=request.form['youremail']
+    name = request.form['yourname']
+    email = request.form['youremail']
+    address = request.form['youraddress']
+    gender = request.form['gender']
+    birthdate = request.form['yourdate']
     address=request.form['youraddress']
-    gender=request.form['gender']
-    birthdate=request.form['yourdate']
 
-    print gender, birthdate
-    
+    print gender, birthdate, address
+    db = get_db()
+    update_profile(db, session['user_id'], address, birthdate)
+    if is_profile_complete(db, session['user_id']):
+        session['comp_info'] = True
 
     return render_template('form_action.html', name=name, email=email, gender=gender, address=address)
     #return render_template('index.html')

@@ -3,7 +3,8 @@ DROP TABLE IF EXISTS USERS;
 CREATE TABLE USERS (
     uid char(25),
     name char(20),
-    email text, 
+    email text,
+    addr text, 
     family_name char(20),
     given_name char(20),
     gender char(8),
