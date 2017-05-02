@@ -106,6 +106,7 @@ def g_index():
     user_init(db, profile)
     # print "user_id:%s  family name:%s  given name:%s  name:%s  email:%s\n"%(user_id, family_name, given_name, name, email)
     # cal.get_all_events(google)
+    
 
     return render_template('index.html')
 
@@ -236,7 +237,7 @@ def buslist2():
 @app.route('/profile')
 def form():
    
-    return render_template('information_submit.html')
+    return render_template('information_submit2.html')
 
 
 @app.route('/post/', methods=['POST'])

@@ -1,10 +1,8 @@
-{% extends "layouts/base.html" %}
-{% block content %}
-<head>
-    <title></title>
+<!DOCTYPE html>
+<html lang="en" class="full">
+  <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
-
     <link href="../static/css/bootstrap.min.css" rel="stylesheet" media="screen">
     <link href="../static/css/bootstrap-datetimepicker.min.css" rel="stylesheet" media="screen">
      <script type="text/javascript">
@@ -16,6 +14,7 @@
                     };                           
             }
     </script>
+    <title>Places Searchbox</title>
     <style>
       /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
@@ -25,8 +24,8 @@
       /* Optional: Makes the sample page fill the window. */
       html, body {
         height: 100%;
-        margin: 20;
-        padding: 20;
+        margin: 0;
+        padding: 0;
       }
       #description {
         font-family: Roboto;
@@ -99,12 +98,9 @@
         width: 345px;
       }
     </style>
-
-     
-</head>
-
-<body>
-<div class="container">
+  </head>
+  <body>
+  <div class="container">
     <div class="title">
         <h1>Please enter your additional information</h1>
     </div>
@@ -157,9 +153,9 @@
                         
                     </div>
 
-</div>
+              </div>
 
-               <div class="row">
+              <div class="row">
                 <div class="col-sm-6">
                 
                         <label for="youraddress">Please enter your address:</label><br>
@@ -167,7 +163,7 @@
 
                 </div>
          
-           <br>
+            <br>
             <div class="col-sm-6"> <!-- Submit button -->
             <div class="form-group">
                     <button class="btn btn-primary " name="submit" type="submit">Submit</button>
@@ -176,23 +172,13 @@
 
             </div>
 
-             <hr> 
-	
+            <hr> 
+  
     </form>
-
-    <div class="googlemap">
+</div>
     <input id="pac-input" class="controls" type="text" placeholder="Search Box">
     <div id="map"></div>
-    
-
-    </div>
-
-
-
-
-</div>
-
-<script>
+    <script>
       // This example adds a search box to a map, using the Google Place Autocomplete
       // feature. People can enter geographical searches. The search box will return a
       // pick list containing a mix of places and predicted search terms.
@@ -269,44 +255,8 @@
       }
 
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&callback=initAutocomplete" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&callback=initAutocomplete"
+         async defer></script>
+  </body>
+</html>
 
-
-
-<script type="text/javascript" src="../static/jquery/jquery-1.8.3.min.js" charset="UTF-8"></script>
-<script type="text/javascript" src="../static/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="../static/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
-<script type="text/javascript" src="../static/js/bootstrap-datetimepicker.en.js" charset="UTF-8"></script>
-<script type="text/javascript">
-            function validateForm() {
-                var address= document.forms["information"]["youraddress"].value;
-                if(address == "") {
-                    alert("Address must be filled out");
-                    return false;
-                    };   
-
-                var date= document.forms["information"]["yourdate"].value;
-                if(date == "") {
-                    alert("Date must be filled out");
-                    return false;
-                    };   
-                     
-            }
-</script>
-<script type="text/javascript">
-    
-	$('.form_date').datetimepicker({
-        language:  'en',
-        weekStart: 1,
-        todayBtn:  1,
-		autoclose: 1,
-		todayHighlight: 1,
-		startView: 2,
-		minView: 2,
-		forceParse: 0
-    });
-	
-</script>
-
-</body>
-{% endblock %}
