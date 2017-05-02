@@ -47,10 +47,12 @@ def user_init(db, profile):
                  str(profile['gender']), str(profile['picture']), str(0), str(0), str(0),
                  str(0), str(0), str(0), str(0.0), str(0.0), str(0.0),))
             db.commit()
+            print "[user_init]Initialized user profile."
         except:
             db.rollback()
+            print '[user_init] Database rollback/'
         
-        print "[user_init]Initialized user profile."
+        
     else:
         print "[user_init]Found user profile in DB."
     return None
