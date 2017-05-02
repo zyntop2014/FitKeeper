@@ -28,6 +28,8 @@ def user_init(db, profile):
     Check if user's profile is in the database.
     If not, initialize the profile, write into database.
     """
+    if not profile['photo']:
+        profile['photo'] = "https://lh3.googleusercontent.com/-XdUIqdMkCWA/AAAAAAAAAAI/AAAAAAAAAAA/4252rscbv5M/photo.jpg"
     cur = db.cursor()
     cur.execute("select * from USERS \
                  WHERE uid = %s",
@@ -38,19 +40,19 @@ def user_init(db, profile):
         try:
             cur.execute(
                 "INSERT INTO USERS \
-                (uid, name, email, family_name, given_name, gender, photo, bas_ctr, \
+                (uid, name, email, gender, family_name, given_name, photo, bas_ctr, \
                 str_ctr, car_ctr, swi_ctr, squ_ctr, total_ctr, rating, rating_ctr, login_time) \
                 VALUES \
                 (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (str(profile['id']), str(profile['name']), str(profile['email']),
-                 str(profile['family_name']), str(profile['given_name']),
-                 str(profile['gender']), str(profile['picture']), str(0), str(0), str(0),
-                 str(0), str(0), str(0), str(0.0), str(0.0), str(0.0),))
+                 str(profile['gender'], str(profile['family_name']), str(profile['given_name']),
+                 str(profile['picture']), str(0), str(0), str(0),
+                 str(0), str(0), str(0), str(0.0), str(0.0), str(0.0),)))
             db.commit()
             print "[user_init]Initialized user profile."
         except:
             db.rollback()
-            print '[user_init] Database rollback/'
+            print '[user_init]Database rollback.'
         
         
     else:
@@ -127,14 +129,25 @@ def gen_random_data():
     """
     Generate random data.
     Default user picture url:
-        "http://www.imran.com/xyper_images/icon-user-default.png"
+    "https://lh3.googleusercontent.com/-XdUIqdMkCWA/AAAAAAAAAAI/AAAAAAAAAAA/4252rscbv5M/photo.jpg"
     """
 
 
 
 
 if __name__ == '__main__':
+    with open('test_user_profile.json') as f:
+        profile = json.load(f)
     db = connect_db()
-    # s = is_profile_complete(db, '105461334228887033966')
-    # print s
-    find_by_id(db, '101657223560565272570')
+    cur = db.cursor()
+    cur.execute(
+                "INSERT INTO USERS \
+                (uid, name, email, family_name, given_name, photo, bas_ctr, \
+                str_ctr, car_ctr, swi_ctr, squ_ctr, total_ctr, rating, rating_ctr, login_time) \
+                VALUES \
+                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (str(profile['id']), str(profile['name']), str(profile['email']),
+                 str(profile['family_name']), str(profile['given_name']),
+                 str(profile['picture']), str(0), str(0), str(0),
+                 str(0), str(0), str(0), str(0.0), str(0.0), str(0.0),))
+    db.commit()
