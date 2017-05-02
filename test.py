@@ -270,7 +270,7 @@ def post():
     address = request.form['youraddress']
     gender = request.form['gender']
     birthdate = request.form['yourdate']
-    address=request.form['youraddress']
+    
 
     print gender, birthdate, address
     db = get_db()

@@ -1,5 +1,5 @@
-import json, pymysql
-
+import json, pymysql, faker
+from faker import Factory
 
 # Get info needed for db connection
 # with open('db_info.json') as db_info_file:
@@ -136,18 +136,4 @@ def gen_random_data():
 
 
 if __name__ == '__main__':
-    with open('test_user_profile.json') as f:
-        profile = json.load(f)
-    db = connect_db()
-    cur = db.cursor()
-    cur.execute(
-                "INSERT INTO USERS \
-                (uid, name, email, family_name, given_name, photo, bas_ctr, \
-                str_ctr, car_ctr, swi_ctr, squ_ctr, total_ctr, rating, rating_ctr, login_time) \
-                VALUES \
-                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                (str(profile['id']), str(profile['name']), str(profile['email']),
-                 str(profile['family_name']), str(profile['given_name']),
-                 str(profile['picture']), str(0), str(0), str(0),
-                 str(0), str(0), str(0), str(0.0), str(0.0), str(0.0),))
-    db.commit()
+    fake = Factory.create()
