@@ -217,6 +217,48 @@ def read_basic_info(db, ids):
 
     return res
 
+
+def update_records(db, uid, ctr=0, rating=0, bas_ctr=0, str_ctr=0,
+                   car_ctr=0, swi_ctr=0, squ_ctr=0):
+    """
+    After each workout/hangout, update workout & rating
+    records. 
+    """
+    cur = db.cursor()
+    cur.execute("SELECT uid, bas_ctr, str_ctr, car_ctr, swi_ctr, \
+                        squ_ctr, ctr, rating \
+                 FROM USERS \
+                 WHERE uid = %s",
+                (str(uid))
+                )
+    res = cur.fetchall()[0]
+
+    # Update records
+    bas_ctr += res[1]
+    str_ctr += res[2]
+    car_ctr += res[3]
+    swi_ctr += res[4]
+    squ_ctr += res[5]
+    ctr += res[6]
+    rating += res[7]
+    data = (str(bas_ctr), str(str_ctr),
+            str(car_ctr), str(swi_ctr), str(squ_ctr),
+            str(ctr), str(rating), str(uid))
+    try:
+        cur.execute("UPDATE USERS \
+                    SET bas_ctr = %s, str_ctr = %s, car_ctr = %s, \
+                        swi_ctr = %s, squ_ctr = %s, ctr = %s, \
+                        rating = %s \
+                    WHERE uid = %s",
+                    data)
+        db.commit()
+    except:
+        db.rollback()
+    
+    cur.close()
+    return None
+
+
 if __name__ == '__main__':
     import sys
     sys.path.append('../ml/')
