@@ -210,12 +210,23 @@ def close_connection(exception):
         db.close()
 
 
-@app.route('/')
-@login_required
-@comp_profile_required
+@app.route('/', methods=['GET', 'POST'])
+#@login_required
+#@comp_profile_required
 def index():
-    return render_template('index.html')
+    interest = None
+    if request.method == 'POST':
+        interest = request.form['interests']
+    print interest
 
+    return render_template('index.html', selected=interest)
+
+@app.route('/friends', methods=['GET', 'POST'])
+#@login_required
+#@comp_profile_required
+def friends():
+    
+    return render_template('friends/friends_index.html')
 
 @app.route('/reservation', methods=['GET', 'POST'])
 @login_required
