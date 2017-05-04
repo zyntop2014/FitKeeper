@@ -1,10 +1,12 @@
 USE gymplanner;
+
+-- USER PROFILE --
 DROP TABLE IF EXISTS USERS;
 CREATE TABLE USERS (
     uid char(25),
     name char(20),
     email text,
-    addr text, 
+    photo text,
     family_name char(20),
     given_name char(20),
     gender char(8),
@@ -14,13 +16,15 @@ CREATE TABLE USERS (
     car_ctr int,  -- car: Cardio
     swi_ctr int,  -- swi: Swimming
     squ_ctr int,  -- squ: Squash
-    total_ctr int,
-    rating float,
-    rating_ctr float,
-    login_time float,
+    ctr int,
+    rating int,
+    signup_date date,
+    lat float,
+    lng float,
     PRIMARY KEY(uid)
 );
 
+-- BUS TABLE --
 DROP TABLE IF EXISTS BUS;
 CREATE TABLE BUS (
 	bid int,
