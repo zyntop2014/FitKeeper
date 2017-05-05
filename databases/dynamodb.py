@@ -46,6 +46,11 @@ mytable = Table(DYNAMODB_TABLE_NAME, connection=client_dynamo)
 def write_dynamo(d):
     """
     Append record to DynamoDB.
+    Data to be written to Dynamo:
+        uid: ID of user (the "inviter")
+        timestamp: time that invitation happens
+        partners: Users are invited.
+                  A list of IDs
     """
     mytable.put_item(
         data={

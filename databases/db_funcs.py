@@ -49,13 +49,13 @@ def user_init(db, profile):
             cur.execute(
                 "INSERT INTO USERS \
                 (uid, name, email, gender, family_name, given_name, photo, bas_ctr, \
-                str_ctr, car_ctr, swi_ctr, squ_ctr, ctr, rating, signup_date) \
+                str_ctr, car_ctr, swi_ctr, squ_ctr, ctr, rating, rating_ctr, signup_date) \
                 VALUES \
                 (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (str(profile['id']), str(profile['name']), str(profile['email']),
                  str(profile['gender'], str(profile['family_name']), str(profile['given_name']),
                  str(profile['picture']), str(0), str(0), str(0),
-                 str(0), str(0), str(0), str(0), str(signup_date),)))
+                 str(0), str(0), str(0), str(0), str(0), str(signup_date),)))
             db.commit()
             print "[user_init]Initialized user profile."
         except:
@@ -202,7 +202,7 @@ def read_db_to_filter(db, ids):
     """
     today = datetime.date.today()
     cur = db.cursor()
-    query = "SELECT uid, dob, ctr, rating, signup_date, lat, lng \
+    query = "SELECT uid, dob, ctr, rating, rating_ctr, signup_date, lat, lng \
              FROM USERS \
              WHERE uid IN (%s)" % ','.join(ids)
     num_rows = cur.execute(query)
@@ -211,10 +211,10 @@ def read_db_to_filter(db, ids):
     for row in cur:
         birth_date = row[1]
         age = calculate_age(birth_date)    # filter feature
-        avg_rating = float(row[3]) / row[2]   # filter feature
-        signup_date = row[4]
+        avg_rating = float(row[3]) / row[4]   # filter feature
+        signup_date = row[5]
         freq = float(row[2]) / (today-signup_date).days   # filter feature
-        lat, lng = row[5], row[6]
+        lat, lng = row[6], row[7]
         r = (row[0], age, avg_rating, freq, (lat, lng))
         res.append(r)
     
@@ -256,25 +256,26 @@ def read_profile(db, ids):
         r['squ_ctr'] = row[12]
         r['ctr'] = row[13]
         r['rating'] = row[14]
-        r['signup_date'] = row[15]
-        r['lat'] = row[16]
-        r['lng'] = row[17]
+        r['rating_ctr'] = row[15]
+        r['signup_date'] = row[16]
+        r['lat'] = row[17]
+        r['lng'] = row[18]
         # Derived Data
         r['bas_ratio'] = (row[8] / float(row[13])) if row[13] else 0.0
         r['str_ratio'] = (row[9] / float(row[13])) if row[13] else 0.0
         r['car_ratio'] = (row[10] / float(row[13])) if row[13] else 0.0
         r['swi_ratio'] = (row[11] / float(row[13])) if row[13] else 0.0
         r['squ_ratio'] = (row[12] / float(row[13])) if row[13] else 0.0
-        r['avg_rating'] = (row[14] / float(row[13])) if row[13] else 0.0
+        r['avg_rating'] = (row[14] / float(row[15])) if row[15] else 0.0
         r['age'] = calculate_age(row[7])
-        r['freq'] = float(row[13]) / (datetime.date.today()-row[15]).days
-        r['addr'] = (row[16], row[17])
+        r['freq'] = float(row[13]) / (datetime.date.today()-row[16]).days
+        r['addr'] = (row[17], row[18])
         res.append(r)
 
     return res
 
 
-def update_records(db, uid, ctr=0, rating=0, bas_ctr=0, str_ctr=0,
+def update_records(db, uid, ctr=0, rating=0, rating_ctr=0, bas_ctr=0, str_ctr=0,
                    car_ctr=0, swi_ctr=0, squ_ctr=0):
     """
     After each workout/hangout, update workout & rating
@@ -284,7 +285,7 @@ def update_records(db, uid, ctr=0, rating=0, bas_ctr=0, str_ctr=0,
 
     # Read record to be updated
     cur.execute("SELECT uid, bas_ctr, str_ctr, car_ctr, swi_ctr, \
-                        squ_ctr, ctr, rating \
+                        squ_ctr, ctr, rating, rating_ctr \
                  FROM USERS \
                  WHERE uid = %s",
                 (str(uid),)
@@ -299,14 +300,15 @@ def update_records(db, uid, ctr=0, rating=0, bas_ctr=0, str_ctr=0,
     squ_ctr += res[5]
     ctr += res[6]
     rating += res[7]
+    rating_ctr += res[8]
     data = (str(bas_ctr), str(str_ctr),
             str(car_ctr), str(swi_ctr), str(squ_ctr),
-            str(ctr), str(rating), str(uid),)
+            str(ctr), str(rating), str(rating_ctr), str(uid),)
     try:
         cur.execute("UPDATE USERS \
                     SET bas_ctr = %s, str_ctr = %s, car_ctr = %s, \
                         swi_ctr = %s, squ_ctr = %s, ctr = %s, \
-                        rating = %s \
+                        rating = %s, rating_ctr = %s \
                     WHERE uid = %s",
                     data)
         db.commit()

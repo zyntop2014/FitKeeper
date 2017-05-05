@@ -18,6 +18,7 @@ CREATE TABLE USERS (
     squ_ctr int,  -- squ: Squash
     ctr int,
     rating int,
+    rating_ctr int,
     signup_date date,
     lat float,
     lng float,

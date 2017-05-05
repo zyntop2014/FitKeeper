@@ -21,6 +21,21 @@ def connect_db():
     )
     return db
 
+def gen_lat_lng():
+    """
+    Generate Latitude and longitude randomly.
+    Upper west to Midtown.
+    """
+    LAT_1 = 40.755433
+    LNG_1 = -73.977127
+    LAT_2 = 40.801709
+    LNG_2 = -73.964767
+
+    lat = random.uniform(LAT_1, LAT_2)
+    lng = random.uniform(LNG_1, LNG_2)
+
+    return lat, lng
+
 
 def gen_profile(id):
     """
@@ -107,10 +122,11 @@ def gen_profile(id):
         return rating
     
     rating = gen_ratings()
-    p['total_rating'] = int(rating*total)
+    p['num_rating_times'] = int(total*random.uniform(1, 3))
+    p['total_rating'] = int(rating*p['num_rating_times'])
     
     # Generate home address location (lat & lng)
-    
+    p['lat'], p['lng'] = gen_lat_lng()
     
     return p
 
@@ -124,15 +140,15 @@ def write_to_db(db, p):
         cur.execute(
             "INSERT INTO USERS \
             (uid, name, email, dob, gender, family_name, given_name, photo, bas_ctr, \
-            str_ctr, car_ctr, swi_ctr, squ_ctr, ctr, rating, signup_date) \
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            str_ctr, car_ctr, swi_ctr, squ_ctr, ctr, rating, rating_ctr, signup_date, lat, lng) \
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             (str(p['id']), str(p['full_name']), str(p['email']), str(p['dob']),
              str(p['gender']), str(p['last_name']), str(p['first_name']),
              str(p['picture']), str(p['bas_times']), str(p['str_times']), str(p['car_times']),
              str(p['swi_times']), str(p['squ_times']), str(p['total_times']), str(p['total_rating']), 
-             str(p['signup_date']),))
+             str(p['num_rating_times']), str(p['signup_date']), str(p['lat']), str(p['lng']),))
         db.commit()
-    
+
     except:
         db.rollback()
 
@@ -140,6 +156,6 @@ def write_to_db(db, p):
 
 if __name__ == '__main__':
     db = connect_db()
-    for i in range(1, 101):
+    for i in range(1, 201):
         p = gen_profile(i)
         write_to_db(db, p)
