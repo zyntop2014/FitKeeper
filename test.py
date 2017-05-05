@@ -273,7 +273,6 @@ def comp_info():
     return render_template('information_submit.html')
 
 
-
 @app.route('/post/', methods=['POST'])
 def post():
     name = request.form['yourname']
@@ -281,7 +280,6 @@ def post():
     address = request.form['youraddress']
     gender = request.form['gender']
     birthdate = request.form['yourdate']
-    
 
     print gender, birthdate, address
     db = get_db()

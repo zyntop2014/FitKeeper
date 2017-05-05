@@ -18,6 +18,23 @@ class MyEncoder(json.JSONEncoder):
 
 # db = [(),(),...]
 def kmeans(db):
+    """
+    Input:
+        db: A list of tuples, each tuple corresponds 
+            to one user.
+            This should be the output of function "read_db_to_ml()"
+    Return:
+        group: 
+            Used to lookup the cluster that each user is in.
+            Dictionary format.
+            key: Each user's uid
+            value: cluster's index
+        get_group_member: 
+            Used to find components of each cluster.
+            Dictionary format.
+            key: Cluster index, STRING TYPE
+            value: A list containing all members of this cluster
+    """
     group = {}
     get_group_member = {}
 
@@ -45,7 +62,7 @@ def kmeans(db):
     return group, get_group_member
 
 
-def filter(id, data):
+def filtering(id, data):
     """
     Perform different filtering methods.
     First find the user's data in 'data',
@@ -66,15 +83,20 @@ def filter(id, data):
         else:
             data_to_filter.append(d)
 
-    filter_by_age = sorted(data_to_filter, key=lambda: x:abs(x[1]-ud[1]))
-    filter_by_rating = sorted(data_to_filter, key=lambda: x:x[2], reverse=True)
-    filter_by_freq = sorted(data_to_filter, key=lambda: x:x[3], reverse=True)
-    filter_by_dist = sorted(data_to_filter, key=lambda: x:vincenty(x[4],ud[4]).miles)
+    filter_by_age = sorted(data_to_filter, key=lambda x:abs(x[1]-ud[1]))
+    filter_by_rating = sorted(data_to_filter, key=lambda x:x[2], reverse=True)
+    filter_by_freq = sorted(data_to_filter, key=lambda x:x[3], reverse=True)
+    filter_by_dist = sorted(data_to_filter, key=lambda x:vincenty(x[4],ud[4]).miles)
 
     res = {}
-    res['filter_by_age'] = filter_by_age
-    res['filter_by_rating'] = filter_by_rating
-    res['filter_by_freq'] = filter_by_freq
-    res['filter_by_dist'] = filter_by_dist
+    # res['filter_by_age'] = filter_by_age
+    # res['filter_by_rating'] = filter_by_rating
+    # res['filter_by_freq'] = filter_by_freq
+    # res['filter_by_dist'] = filter_by_dist
+    # Extract IDs
+    res['filter_by_age'] = map(lambda x:x[0], filter_by_age)
+    res['filter_by_rating'] = map(lambda x:x[0], filter_by_rating)
+    res['filter_by_freq'] = map(lambda x:x[0], filter_by_freq)
+    res['filter_by_dist'] = map(lambda x:x[0], filter_by_dist)
 
     return res

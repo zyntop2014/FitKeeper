@@ -60,9 +60,11 @@ def write_dynamo(d):
 
 def read_dynamo(uid):
     """
-    Read records from Dynamo. 
+    Read records from Dynamo.
+    Return:
+        res: A list of IDs, unicode type.
     """
-    data = mytable.get_item(uid=uid)
+    data = mytable.get_item(uid=uid)   # Only one row, so no iterables
     res = data['partners']
 
     return res

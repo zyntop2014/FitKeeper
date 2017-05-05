@@ -1,15 +1,18 @@
 import json, pymysql, faker, datetime, numpy
-from faker import Factory
+
 
 DEFAULT_PIC_URL = "https://lh3.googleusercontent.com/-XdUIqdMkCWA/AAAAAAAAAAI/AAAAAAAAAAA/4252rscbv5M/photo.jpg"
-# Get info needed for db connection
-# with open('db_info.json') as db_info_file:
+
+
+# Read RDS info from file, connect to DB.
 try:
     with open('databases/db_info.json') as db_info_file:
         db_info = json.load(db_info_file)
+        db_info_file.close()
 except IOError:
     with open('db_info.json') as db_info_file:
         db_info = json.load(db_info_file)
+        db_info_file.close()
 
 
 def connect_db():
@@ -28,7 +31,8 @@ def connect_db():
 def user_init(db, profile):
     """
     Check if user's profile is in the database.
-    If not, initialize the profile, write into database.
+    If not, initialize new user's profile, 
+    and write into database.
     """
     if not profile['picture']:
         profile['picture'] = DEFAULT_PIC_URL
@@ -38,7 +42,7 @@ def user_init(db, profile):
                  (profile['id']))
     res = cur.fetchall()
     if not len(res):
-        # Profile initialization
+        # No profile in DB of this user. Create new one.
         today = datetime.datetime.today()
         signup_date = str(today.year) + '-' + str(today.month) + '-' + str(today.day)
         try:
@@ -56,8 +60,7 @@ def user_init(db, profile):
             print "[user_init]Initialized user profile."
         except:
             db.rollback()
-            print '[user_init]Database rollback.'
-        
+            print '[user_init]Database rollback.' 
         
     else:
         print "[user_init]Found user profile in DB."
@@ -89,66 +92,84 @@ def find_bus(db, bus_line, time1, time2):
 def is_profile_complete(db, id):
     """
     Check if user's profile is complete
-    (address is not None OR dob is not None).
+    (address(lat & lng) is empty OR dob is empty).
     """
     cur = db.cursor()
-    cur.execute("SELECT addr, dob FROM USERS \
+    cur.execute("SELECT given_name, family_name, gender, dob, lat, lng \
+                 FROM USERS \
                  WHERE uid = %s",
-                 (str(id)))
-    result = cur.fetchall()
-    # if result == ((None, None),)
+                 (str(id),))
+    result = cur.fetchall()[0]
+    # print result
     cur.close()
-    if (not result[0][0]) or (not result[0][1]):
-        return False
+    
+    for attr in result:
+        if not attr:
+            return False
     return True
 
 
 def find_by_id(db, id):
+    """
+    Query profile database by user's id.
+    **result: the entire row, no attribute missing.
+    Return: None
+    """
     cur = db.cursor()
-    cur.execute("SELECT * FROM USERS  \
+    cur.execute("SELECT * FROM USERS \
                  WHERE uid = %s",
-                 (str(id)))
+                 (str(id),))
     result = cur.fetchall()
     print result
     cur.close()
     return None
 
 
-def update_profile(db, id, addr, dob):
+def update_profile(db, id, fn, ln, gender, lat, lng, dob):
     """
     Update user's profile.
-    Write (or overwrite) attributes "addr", "dob", etc.
+    fn: First Name / Given Name
+    ln: Last Name / Family name
     """
     cur = db.cursor()
     try:
         cur.execute("UPDATE USERS \
-                    SET addr = %s, dob = %s",
-                    (str(addr), str(dob)))
+                     SET lat = %s, lng = %s, dob = %s, \
+                         given_name = %s, family_name = %s, \
+                         gender = %s \
+                     WHERE uid = %s",
+                    (str(lat), str(lng), str(dob), str(fn),
+                     str(ln), str(gender), str(id),))
         db.commit()
-        print "Updated user's profile."
+        print "[USERS DB] Updated user's profile."
     except:
         db.rollback()
+        print "[USERS DB] Update failed. Rollback Database."
     cur.close()
     return None
 
 
 def read_db_to_ml(db):
     """
-    Read data from database,
-    parse data (to "a list of tuple" format).
+    Read ALL data from database,
+    then parse data (to "a list of tuple" format).
     Input:
         db: database object
-
+    Return:
+        res: Parsed format of each row,
+             in "a list of tuples" format.
+             This returned value can directly passed
+             into K-means model.
     """
     cur = db.cursor()
-    # Read id, ctrs of all data
-    # data: # of rows returned
+    # Read id, ctrs of ALL data
+    # num_rows: # of rows returned
     # iterate "cur" to get each row of returned data
     num_rows = cur.execute("SELECT uid, bas_ctr, str_ctr, car_ctr, swi_ctr, squ_ctr, ctr \
-                        FROM USERS")
+                            FROM USERS")
     res = []
     for row in cur:
-        s = float(row[6])
+        s = float(row[6])  # s: total # of workout times
         r = (row[0], row[1]/s, row[2]/s, row[3]/s, row[4]/s, row[5]/s,)
         res.append(r)
     cur.close()
@@ -158,7 +179,11 @@ def read_db_to_ml(db):
 
 def calculate_age(born):
     """
-    Compute age according to two datetime.date()
+    Compute age according to 2 datetime.date objects.
+    Input:
+        born: user's DOB, in datetime.date format
+    Return:
+        User's age
     """
     today = datetime.date.today()
     return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
@@ -184,35 +209,66 @@ def read_db_to_filter(db, ids):
     cur.close()
     res = []
     for row in cur:
-        birth_date = datetime.datetime.strptime(row[1], '%Y-%m-%d').date()
+        birth_date = row[1]
         age = calculate_age(birth_date)    # filter feature
         avg_rating = float(row[3]) / row[2]   # filter feature
-        signup_date = datetime.datetime.strptime(row[4]).date()
-        avg_usage = float(row[2]) / (today-signup_date).days   # filter feature
+        signup_date = row[4]
+        freq = float(row[2]) / (today-signup_date).days   # filter feature
         lat, lng = row[5], row[6]
-        r = (row[0], age, avg_rating, avg_usage, (lat, lng))
+        r = (row[0], age, avg_rating, freq, (lat, lng))
         res.append(r)
     
     return res
 
 
-def read_basic_info(db, ids):
+def read_profile(db, ids):
     """
-    Query basic infomation of each user (whose id in 'ids'),
-    Queried result is for display purposes.
+    Query profile DB using input IDs,
+    return the entire row of each ID.
+    Input:
+        ids: A list of IDs
+    Return:
 
     """
     cur = db.cursor()
     # Substitute attributes below to required ones
-    query = "SELECT uid, dob, ctr, rating, signup_date, lat, lng \
+    query = "SELECT * \
              FROM USERS \
              WHERE uid IN (%s)" % ','.join(ids)
     num_rows = cur.execute(query)
     cur.close()
     res = []
     for row in cur:
-        id = row[0]
-        r = (id)
+        r = {}
+        # Original Data
+        r['uid'] = row[0]
+        r['name'] = row[1]
+        r['email'] = row[2]
+        r['photo'] = row[3]
+        r['family_name'] = row[4]
+        r['given_name'] = row[5]
+        r['gender'] = row[6]
+        r['dob'] = row[7]
+        r['bas_ctr'] = row[8]
+        r['str_ctr'] = row[9]
+        r['car_ctr'] = row[10]
+        r['swi_ctr'] = row[11]
+        r['squ_ctr'] = row[12]
+        r['ctr'] = row[13]
+        r['rating'] = row[14]
+        r['signup_date'] = row[15]
+        r['lat'] = row[16]
+        r['lng'] = row[17]
+        # Derived Data
+        r['bas_ratio'] = (row[8] / float(row[13])) if row[13] else 0.0
+        r['str_ratio'] = (row[9] / float(row[13])) if row[13] else 0.0
+        r['car_ratio'] = (row[10] / float(row[13])) if row[13] else 0.0
+        r['swi_ratio'] = (row[11] / float(row[13])) if row[13] else 0.0
+        r['squ_ratio'] = (row[12] / float(row[13])) if row[13] else 0.0
+        r['avg_rating'] = (row[14] / float(row[13])) if row[13] else 0.0
+        r['age'] = calculate_age(row[7])
+        r['freq'] = float(row[13]) / (datetime.date.today()-row[15]).days
+        r['addr'] = (row[16], row[17])
         res.append(r)
 
     return res
@@ -222,18 +278,20 @@ def update_records(db, uid, ctr=0, rating=0, bas_ctr=0, str_ctr=0,
                    car_ctr=0, swi_ctr=0, squ_ctr=0):
     """
     After each workout/hangout, update workout & rating
-    records. 
+    records.
     """
     cur = db.cursor()
+
+    # Read record to be updated
     cur.execute("SELECT uid, bas_ctr, str_ctr, car_ctr, swi_ctr, \
                         squ_ctr, ctr, rating \
                  FROM USERS \
                  WHERE uid = %s",
-                (str(uid))
+                (str(uid),)
                 )
     res = cur.fetchall()[0]
 
-    # Update records
+    # Update record
     bas_ctr += res[1]
     str_ctr += res[2]
     car_ctr += res[3]
@@ -243,7 +301,7 @@ def update_records(db, uid, ctr=0, rating=0, bas_ctr=0, str_ctr=0,
     rating += res[7]
     data = (str(bas_ctr), str(str_ctr),
             str(car_ctr), str(swi_ctr), str(squ_ctr),
-            str(ctr), str(rating), str(uid))
+            str(ctr), str(rating), str(uid),)
     try:
         cur.execute("UPDATE USERS \
                     SET bas_ctr = %s, str_ctr = %s, car_ctr = %s, \
@@ -260,15 +318,6 @@ def update_records(db, uid, ctr=0, rating=0, bas_ctr=0, str_ctr=0,
 
 
 if __name__ == '__main__':
-    import sys
-    sys.path.append('../ml/')
-    from kmeans import kmeans
     db = connect_db()
-    rows = read_db_to_ml(db)
-    (g, ggm) = kmeans(rows)
-    print '[group]'
-    print json.dumps(g, indent=4, sort_keys=True)
-    print '[get group member]'
-    print json.dumps(ggm, indent=4, sort_keys=True)
-    print ggm['1']
-
+    print is_profile_complete(db, '12')
+    
