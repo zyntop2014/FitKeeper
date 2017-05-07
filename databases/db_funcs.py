@@ -1,4 +1,7 @@
-import json, pymysql, faker, datetime, numpy
+import json, pymysql, datetime, numpy, os
+
+# path of db_info.json
+db_info_filename = os.path.join(os.path.dirname(__file__), 'db_info.json')
 
 
 DEFAULT_PIC_URL = "https://lh3.googleusercontent.com/-XdUIqdMkCWA/AAAAAAAAAAI/AAAAAAAAAAA/4252rscbv5M/photo.jpg"
@@ -6,11 +9,12 @@ DEFAULT_PIC_URL = "https://lh3.googleusercontent.com/-XdUIqdMkCWA/AAAAAAAAAAI/AA
 
 # Read RDS info from file, connect to DB.
 try:
-    with open('databases/db_info.json') as db_info_file:
+    with open(db_info_filename) as db_info_file:
         db_info = json.load(db_info_file)
         db_info_file.close()
 except IOError:
     with open('db_info.json') as db_info_file:
+        print "[db_funcs.py]IO Error???"
         db_info = json.load(db_info_file)
         db_info_file.close()
 
@@ -51,11 +55,11 @@ def user_init(db, profile):
                 (uid, name, email, gender, family_name, given_name, photo, bas_ctr, \
                 str_ctr, car_ctr, swi_ctr, squ_ctr, ctr, rating, rating_ctr, signup_date) \
                 VALUES \
-                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (str(profile['id']), str(profile['name']), str(profile['email']),
-                 str(profile['gender'], str(profile['family_name']), str(profile['given_name']),
+                 str(profile['gender']), str(profile['family_name']), str(profile['given_name']),
                  str(profile['picture']), str(0), str(0), str(0),
-                 str(0), str(0), str(0), str(0), str(0), str(signup_date),)))
+                 str(0), str(0), str(0), str(0), str(0), str(signup_date),))
             db.commit()
             print "[user_init]Initialized user profile."
         except:
@@ -202,22 +206,31 @@ def read_db_to_filter(db, ids):
     """
     today = datetime.date.today()
     cur = db.cursor()
-    query = "SELECT uid, dob, ctr, rating, rating_ctr, signup_date, lat, lng \
+    query = "SELECT uid, dob, ctr, rating, rating_ctr, signup_date, lat, lng,\
+             bas_ctr, str_ctr, car_ctr, swi_ctr, squ_ctr \
              FROM USERS \
              WHERE uid IN (%s)" % ','.join(ids)
     num_rows = cur.execute(query)
-    cur.close()
     res = []
+
     for row in cur:
         birth_date = row[1]
         age = calculate_age(birth_date)    # filter feature
-        avg_rating = float(row[3]) / row[4]   # filter feature
+        avg_rating = (float(row[3])/row[4]) if row[4] else 0.0   # filter feature
         signup_date = row[5]
-        freq = float(row[2]) / (today-signup_date).days   # filter feature
+        days_delta = (today-signup_date).days
+        freq = (float(row[2])/days_delta) if days_delta else 0.0   # filter feature
         lat, lng = row[6], row[7]
-        r = (row[0], age, avg_rating, freq, (lat, lng))
+        bas_ratio = (float(row[8])/row[2]) if row[2] else 0
+        str_ratio = (float(row[9])/row[2]) if row[2] else 0
+        car_ratio = (float(row[10])/row[2]) if row[2] else 0
+        swi_ratio = (float(row[11])/row[2]) if row[2] else 0
+        squ_ratio = (float(row[12])/row[2]) if row[2] else 0
+        r = (row[0], age, avg_rating, freq, (lat, lng), 
+             (bas_ratio, str_ratio, car_ratio, swi_ratio, squ_ratio))
         res.append(r)
-    
+
+    cur.close()
     return res
 
 
@@ -231,14 +244,13 @@ def read_profile(db, ids):
 
     """
     cur = db.cursor()
-    # Substitute attributes below to required ones
-    query = "SELECT * \
-             FROM USERS \
-             WHERE uid IN (%s)" % ','.join(ids)
-    num_rows = cur.execute(query)
-    cur.close()
     res = []
-    for row in cur:
+    for uid in ids:
+        query = "SELECT * \
+                FROM USERS \
+                WHERE uid = %s" %(uid)
+        num_rows = cur.execute(query)   
+        row = cur.fetchall()[0]
         r = {}
         # Original Data
         r['uid'] = row[0]
@@ -271,7 +283,8 @@ def read_profile(db, ids):
         r['freq'] = float(row[13]) / (datetime.date.today()-row[16]).days
         r['addr'] = (row[17], row[18])
         res.append(r)
-
+    
+    cur.close()
     return res
 
 

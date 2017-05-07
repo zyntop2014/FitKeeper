@@ -1,10 +1,14 @@
-import boto, datetime
+import boto, datetime, os
 import boto.dynamodb2
 
 
-# Read aws identity file
+# Create resource filename
+aws_identity_filename = os.path.join(os.path.dirname(__file__), 'aws_identity.txt')
+
+
+# Read aws_identity.txt file
 try:
-    with open('aws_identity.txt', 'rb') as aws_file:
+    with open(aws_identity_filename, 'rb') as aws_file:
         content = aws_file.readlines()
         ACCOUNT_ID = content[0].rstrip('\n').split()[2]
         IDENTITY_POOL_ID = content[1].rstrip('\n').split()[2]
@@ -37,6 +41,7 @@ client_dynamo = boto.dynamodb2.connect_to_region(
 
 
 # Connect to Table "GymPlanner"
+from boto.dynamodb2.exceptions import ItemNotFound
 from boto.dynamodb2.table import Table
 from boto.dynamodb2.fields import HashKey
 DYNAMODB_TABLE_NAME = 'GymPlanner'
@@ -63,21 +68,58 @@ def write_dynamo(d):
     return None
 
 
-def read_dynamo(uid):
+def is_in_dynamo(uid):
+    """
+    Determine whether there's a record in DynamoDB
+    with uid as the (hash) key.
+    """
+    try:
+        data = mytable.get_item(uid=uid)
+        return True
+    except ItemNotFound:
+        return False
+
+
+def query_dynamo(uid):
     """
     Read records from Dynamo.
     Return:
         res: A list of IDs, unicode type.
     """
-    data = mytable.get_item(uid=uid)   # Only one row, so no iterables
-    res = data['partners']
+    try:
+        data = mytable.get_item(uid=uid)   # Only one row, so no iterables
+        res = data['partners']
+    except ItemNotFound:
+        return None
 
     return res
 
 
+def append_inv_records(uids):
+    """
+    Append invitation records to DynamoDB.
+    """
+    # Get current timestamp, in "YYYY-MM-DD HH:MM:SS" format.
+    today = datetime.datetime.today()
+    timestamp = str(today.year) + '-' + str(today.month) + '-' + str(today.day) \
+                + ' ' + str(today.hour) + ':' + str(today.minute) + \
+                str(today.second)
+    # Append records to Dynamo
+    for uid in uids:
+        d = {}
+        d['uid'] = uid
+        d['timestamp'] = timestamp
+        d['partners'] = [v for v in uids if v != uid]
+        write_dynamo(d)
+
+    return None
+
+
 if __name__ == '__main__':
     today = datetime.datetime.today()
-    timestamp = str(today.year) + '-' + str(today.month) + '-' + str(today.day)  
+    timestamp = str(today.year) + '-' + str(today.month) + '-' + str(today.day) \
+                + ' ' + str(today.hour) + ':' + str(today.minute) + \
+                str(today.second)
     uid = '1'
     partners = ['2', '3', '4', '5']
     d = {}
@@ -86,4 +128,4 @@ if __name__ == '__main__':
     d['partners'] = partners
 
     # write_dynamo(d)
-    print read_dynamo('1')
+    print query_dynamo('1')

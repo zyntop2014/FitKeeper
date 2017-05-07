@@ -158,21 +158,26 @@
     <div class="title">
         <h1>Please enter your additional information</h1>
     </div>
-    <form name="information" class="form-horizontal"  role="form", method="post" action="{{ url_for('post') }}", onsubmit="return validateForm()">
+    <form name="information" class="form-horizontal"  role="form", method="post" action="{{ url_for('supplement_profile') }}", onsubmit="return validateForm()">
             
                 <div class="row">
                     <div class="col-sm-6">
-                        <label for="yourname">Please enter your name:</label><br>
-                        <input type="text" name="yourname" /><br /><br>
+                        <label for="yourfirstname">First Name:</label><br>
+                        <input type="text" name="yourfirstname" /><br /><br>
                     </div>
 
                     <div class="col-sm-6">
+                        <label for="yourlastname">Last Name:</label><br>
+                        <input type="text" name="yourlastname" /><br /><br>
+                    </div>
+
+                    <!--<div class="col-sm-6">
                        <div class="form-group">
-                        <label for="youremail">Please enter your email:</label><br>
+                        <label for="youremail">Email:</label><br>
                         <input type="text" name="youremail" /><br />
                         </div>
 
-                    </div>
+                    </div>-->
                       
                 </div>
 
@@ -180,7 +185,7 @@
 
                 <div class="row">
                     <div class="col-sm-6">
-                      <label for="yourgender">Please enter your gender:</label> 
+                      <label for="yourgender">Gender:</label> 
                         <br>
                             <input type="radio" name="gender" value="male" checked> Male
                             <input type="radio" name="gender" value="female"> Female
@@ -191,7 +196,7 @@
 
                     <div class="col-sm-6">
                         <div class="form-group">
-                        <label for="dtp_input2" >Please pick your birthdate:</label><br>
+                        <label for="dtp_input2" >Birthdate:</label><br>
                         <div class="input-group date form_date col-sm-5"  data-date="" data-date-format='yyyy-mm-dd' data-link-field="dtp_input2" data-link-format="yyyy-mm-dd">
                             <input name="yourdate" type="text" value="" >
                          
@@ -211,7 +216,7 @@
 
               <div class="row">
                 <div class="col-sm-6"> 
-                        <label for="youraddress">Please click the map to enter your address:</label><br>
+                        <label for="youraddress">Please mark your address on map:</label><br>
                         your location: <input id='address' type="text" name="youraddress" /> <br>
 
                 </div>
@@ -242,14 +247,14 @@
 
       function initAutocomplete() {
         var map = new google.maps.Map(document.getElementById('map'), {    
-          center: {lat: 40.806, lng: -73.963},
+          center: {lat: 40.807536, lng: -73.962573},
           zoom: 14,
           mapTypeId: 'roadmap'
         });
 
         
         var marker = new google.maps.Marker({
-          position: {lat: 40.806, lng: -73.963},
+          position: {lat: 40.807536, lng: -73.962573},
           map: map,
           title: 'Hello Columbia!'
         });

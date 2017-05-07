@@ -10,8 +10,10 @@ from datetime import datetime as dt
 import sys
 sys.path.append('calendar/')
 sys.path.append('databases/')
+sys.path.append('ml/')
 from mycalendar import *
 from db_funcs import *
+from recommendation import *
 
 #import transloc
 
@@ -69,6 +71,7 @@ def comp_profile_required(f):
             return redirect(url_for('comp_info'))
     return wrap
 
+
 @app.route('/google')
 def g_index():
     access_token = session.get('access_token')
@@ -102,18 +105,15 @@ def g_index():
     google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
     session['user_id'] = profile['id']
+    if is_in_dynamo(session['user_id']) == False:
+        # No unhandled ratings in Dynamo
+        session['unhandled_rating'] = False
+    else:
+        session['unhandled_rating'] = True
 
     # session['calendar'] = google_calendar['items']  # When not commented out, buslist cannot be accessed
     # add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summary='')
     # print get_busy_time(session['calendar'])
-    
-    # family_name = profile['family_name']
-    # given_name = profile['given_name']
-    # name = profile['name']
-    # email = profile['email']
-    # photo_url = profile['picture']
-    # #gender = profile['gender']
-    # #link = profile['link']
     
     db = get_db()
     user_init(db, profile)
@@ -189,6 +189,7 @@ def logout():
     session.pop('profile', None)
     session.pop('calendar', None)
     session.pop('comp_info', None)
+    session.pop('unhandled_rating', None)
     flash('You were logged out.')
     return redirect(url_for('welcome'))
 
@@ -205,6 +206,9 @@ def get_db():
 
 @app.teardown_appcontext
 def close_connection(exception):
+    """
+    Close databases' connections.
+    """
     db = getattr(g, 'mysql_db', None)
     if db is not None:
         db.close()
@@ -221,12 +225,40 @@ def index():
 
     return render_template('index.html', selected=interest)
 
+
 @app.route('/friends', methods=['GET', 'POST'])
 #@login_required
 #@comp_profile_required
 def friends():
-    
+    """
+    Recommend workout partners to user using K-means.
+    Then, sort recommendation result based on
+    all "filtering" attributes.
+
+    Data to display on webpage:
+        filter_result: A dict of "list of dicts"s, containing all 4 filtering results.
+                       (age, rating, frequency, home address distance)
+            * filter_result['filter_by_age']: a list of dicts. Every element in the list
+                corresponds to a user/partner. It's represented in dict format, every
+                key-value pair correspond to one attribute in profile DB.
+            * filter_result['filter_by_rating']: Same as above.
+            * filter_result['filter_by_freq']: Same as above.
+            * filter_result['filter_by_dist']: Same as above.
+            * filter_result['filter_by_cor']: Same as above.
+
+    """
+    user_id = session['user_id']   # Current user's id
+    db = get_db()
+
+    all_data = read_db_to_ml(db)   # Get all data from Profile DB
+    group, get_group_member = kmeans(all_data)   # Run K-means
+    user_cluster = group[user_id]   # Get the idx of cluster that current user is in
+    user_neighbors = get_group_member[str(user_cluster)]   # Get all users' IDs in that cluster
+    user_neighbors_data = read_db_to_filter(db, user_neighbors)   # Read their profiles based on IDs
+    filter_result = filtering(user_id, user_neighbors_data)   # Sorting
+
     return render_template('friends/friends_index.html')
+
 
 @app.route('/reservation', methods=['GET', 'POST'])
 @login_required
@@ -270,25 +302,81 @@ def buslist2():
 
 @app.route('/comp_info')
 def comp_info():
+    """
+    information_submit.html: 
+        page of supplementing user's profile.
+    """
     return render_template('information_submit.html')
 
 
 @app.route('/post/', methods=['POST'])
-def post():
-    name = request.form['yourname']
-    email = request.form['youremail']
+def supplement_profile():
+    """
+    Receive info from page "information_submit.html",
+    Update user's profile.
+    'POST' method.
+    """
+    fn = request.form['yourfirstname'].title()   # title(): Uppercase the first letter
+    ln = request.form['yourlastname'].title()
     address = request.form['youraddress']
     gender = request.form['gender']
     birthdate = request.form['yourdate']
 
-    print gender, birthdate, address
+    # Extract lat & lng from 'address'
+    latlng = address.strip('()').split()
+    lat, lng = latlng[0], latlng[1]
+
+    # Update profile database
     db = get_db()
-    update_profile(db, session['user_id'], address, birthdate)
+    update_profile(db, session['user_id'], fn, ln, gender, lat, lng, birthdate)
     if is_profile_complete(db, session['user_id']):
         session['comp_info'] = True
 
-    return render_template('form_action.html', name=name, email=email, gender=gender, address=address)
-    #return render_template('index.html')
+    # return render_template('form_action.html',  gender=gender, address=address)# ,name=name, email=email)
+    return render_template('index.html')
+
+
+# @app.route('***', methods=['POST'])
+def send_invitations():
+    """
+    Send invitations based on user's choices,
+    and save application records to DynamoDB.
+    """
+    ######### PARSE USER'S CHOICES ###########
+    pass
+    invitees = ['1','2','3','4']
+    ##########################################
+    ####### SEND INVITATION EMAILS ###########
+    for uid in invitees:
+        pass
+    ##########################################
+    inv_group = [session['user_id']] + invitees
+    append_inv_records(inv_group)
+
+    return None
+
+
+# @app.route('***', methods=['POST'])
+def rate_partners():
+    """
+    Rate partners. 
+    Enter this function by clicking "Rate!" button.
+    """
+    db = get_db()
+    utr = query_dynamo(session['user_id'])   # utr: users to rate
+    utr_profiles = read_profile(db, utr)   # Profiles of these users
+
+    ### Send 'utr_profiles' to frontend ###
+
+    #######################################
+    ######## Receive User's rating ########
+
+    #######################################
+    session['unhandled_rating'] = False
+    # Update user's profile, pay attention to user's workout catagory
+    update_records(db=db, uid=session['user_id'], ctr=1, bas_ctr=1)
+    # Update partner's profile.
+    update_records(db=db, uid=partner_id, rating=4, rating_ctr=1)
 
 if __name__ == '__main__':
     app.run(debug=True)
