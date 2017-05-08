@@ -174,7 +174,10 @@ def read_db_to_ml(db):
     res = []
     for row in cur:
         s = float(row[6])  # s: total # of workout times
-        r = (row[0], row[1]/s, row[2]/s, row[3]/s, row[4]/s, row[5]/s,)
+        if s == 0.0:
+            r = (row[0], 0.0, 0.0, 0.0, 0.0, 0.0,)
+        else:
+            r = (row[0], row[1]/s, row[2]/s, row[3]/s, row[4]/s, row[5]/s,)
         res.append(r)
     cur.close()
     # print res
