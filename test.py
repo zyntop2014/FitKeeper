@@ -227,8 +227,8 @@ def index():
 
 
 @app.route('/friends', methods=['GET', 'POST'])
-#@login_required
-#@comp_profile_required
+@login_required
+@comp_profile_required
 def friends():
     """
     Recommend workout partners to user using K-means.
@@ -356,7 +356,8 @@ def send_invitations():
     return None
 
 
-# @app.route('***', methods=['POST'])
+
+@app.route('/rate', methods=['GET', 'POST'])
 def rate_partners():
     """
     Rate partners. 
