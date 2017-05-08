@@ -378,7 +378,19 @@
                         if(date == "") {
                             alert("Date must be filled out");
                             return false;
-                            };   
+                            };  
+
+                        var fn = document.forms['information']['yourfirstname'].value;
+                        if (fn == "") {
+                            alert("First name must be filled out");
+                            return false;
+                          }; 
+
+                        var fn = document.forms['information']['yourlastname'].value;
+                        if (fn == "") {
+                            alert("First name must be filled out");
+                            return false;
+                          }; 
                              
                     }
         </script>

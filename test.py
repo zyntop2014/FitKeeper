@@ -219,12 +219,9 @@ def close_connection(exception):
 #@login_required
 #@comp_profile_required
 def index():
-    interest = None
-    if request.method == 'POST':
-        interest = request.form['interests']
-    print interest
+    
 
-    return render_template('index.html', selected=interest)
+    return render_template('index.html')
 
 
 @app.route('/friends', methods=['GET', 'POST'])
@@ -257,8 +254,12 @@ def friends():
     user_neighbors = get_group_member[str(user_cluster)]   # Get all users' IDs in that cluster
     user_neighbors_data = read_db_to_filter(db, user_neighbors)   # Read their profiles based on IDs
     filter_result = filtering(user_id, user_neighbors_data)   # Sorting
+    interest = None
+    if request.method == 'POST':
+        interest = request.form['interests']
+    print interest
 
-    return render_template('friends/friends_index.html')
+    return render_template('friends/friends_index.html',selected=interest)
 
 
 @app.route('/reservation', methods=['GET', 'POST'])
