@@ -105,11 +105,11 @@ def g_index():
     google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
     session['user_id'] = profile['id']
-    if is_in_dynamo(session['user_id']) == False:
+    #if is_in_dynamo(session['user_id']) == False:
         # No unhandled ratings in Dynamo
-        session['unhandled_rating'] = False
-    else:
-        session['unhandled_rating'] = True
+        #session['unhandled_rating'] = False
+    #else:
+    session['unhandled_rating'] = True
 
     # session['calendar'] = google_calendar['items']  # When not commented out, buslist cannot be accessed
     # add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summary='')
