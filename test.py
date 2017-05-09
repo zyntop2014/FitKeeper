@@ -324,13 +324,21 @@ def supplement_profile():
     gender = request.form['gender']
     birthdate = request.form['yourdate']
 
+    # TEST DATA
+    bas_ctr = 4.5
+    str_ctr = 5.0
+    car_ctr = 3.0
+    swi_ctr = 3.5
+    squ_ctr = 1.0
+
     # Extract lat & lng from 'address'
     latlng = address.strip('()').split()
     lat, lng = latlng[0], latlng[1]
 
     # Update profile database
     db = get_db()
-    update_profile(db, session['user_id'], fn, ln, gender, lat, lng, birthdate)
+    update_profile(db, session['user_id'], fn, ln, gender, lat, lng, bas_ctr,
+                   str_ctr, car_ctr, swi_ctr, squ_ctr, birthdate)
     if is_profile_complete(db, session['user_id']):
         session['comp_info'] = True
 
