@@ -282,7 +282,7 @@ def reservation():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             print "save"
             return redirect(url_for('reservation',filename=filename))
-    return render_template('reservations/index.html, ')
+    return render_template('reservations/index.html')
 
 
 @app.route('/buslist', methods=['GET', 'POST'])
