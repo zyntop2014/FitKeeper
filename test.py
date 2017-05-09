@@ -11,11 +11,10 @@ import sys
 sys.path.append('calendar/')
 sys.path.append('databases/')
 sys.path.append('ml/')
-sys.path.append('ses/')
 from mycalendar import *
 from db_funcs import *
 from recommendation import *
-from ses import *
+
 #import transloc
 
 def allowed_file(filename):
@@ -106,9 +105,12 @@ def g_index():
     google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
     session['user_id'] = profile['id']
-    session['user_email'] = profile['email']
-    ses_verification(conn_ses(), profile['email'])
 
+    # if is_in_dynamo(session['user_id']) == False:
+    #     # No unhandled ratings in Dynamo
+    #     session['unhandled_rating'] = False
+    # else:
+    #     session['unhandled_rating'] = True
 
     # session['calendar'] = google_calendar['items']  # When not commented out, buslist cannot be accessed
     # add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summary='')
@@ -188,7 +190,7 @@ def logout():
     session.pop('profile', None)
     session.pop('calendar', None)
     session.pop('comp_info', None)
-    session.pop('user_email', None)
+    session.pop('unhandled_rating', None)
     flash('You were logged out.')
     return redirect(url_for('welcome'))
 
@@ -223,7 +225,7 @@ def index():
 
 
 @app.route('/friends', methods=['GET', 'POST'])
-@login_required
+#@login_required
 @comp_profile_required
 def friends():
     """
@@ -264,9 +266,6 @@ def friends():
 @login_required
 @comp_profile_required
 def reservation():
-    uid = session['user_id']
-    db = get_db()
-
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -280,15 +279,10 @@ def reservation():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            update_photo(db, uid, filename)   # Update photo URL
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             print "save"
             return redirect(url_for('reservation',filename=filename))
-    
-    # 'GET' method. 
-    query_res = read_profile(db, (uid,))
-    # print query_res[0]
-    return render_template('reservations/index.html', profile=query_res[0])
+    return render_template('reservations/index.html, ')
 
 
 @app.route('/buslist', methods=['GET', 'POST'])
@@ -334,18 +328,9 @@ def supplement_profile():
     latlng = address.strip('()').split()
     lat, lng = latlng[0], latlng[1]
 
-    # TEST DATA
-    bas_ctr = 4.5
-    str_ctr = 5.0
-    car_ctr = 1.0
-    swi_ctr = 3.5
-    squ_ctr = 0.5
-
     # Update profile database
     db = get_db()
-    update_profile(db, session['user_id'], fn, ln, bas_ctr, str_ctr,
-                   car_ctr, swi_ctr, squ_ctr, 
-                   gender, lat, lng, birthdate)
+    update_profile(db, session['user_id'], fn, ln, gender, lat, lng, birthdate)
     if is_profile_complete(db, session['user_id']):
         session['comp_info'] = True
 
@@ -353,73 +338,48 @@ def supplement_profile():
     return render_template('index.html')
 
 
-@app.route('/sendinv/<invitee_id>')
-@login_required
-def send_invitation(invitee_id):
+# @app.route('***', methods=['POST'])
+def send_invitations():
     """
-    Send an invitation to 'invitee'
-    using AWS SES service.
+    Send invitations based on user's choices,
+    and save application records to DynamoDB.
     """
-    db = get_db()
-    invitee_email = get_user_email(db, invitee_id)
-    send_request(conn=conn_ses(), source=session['user_email'],
-                 to_address=invitee_email, 
-                 reply_addresses=session['user_email'])
-    return None
-
-
-@app.route('/accinv/<string:a_uid>/<string:b_uid>', methods=['GET'])
-def accept_invitation(a_uid, b_uid):
-    """
-    URL for accepting invitation.
-    Append invitation records(A->B & B->A)
-    to DynamoDB.
-    """
-    write_inv_record(a_uid, b_uid)
-    return None
-
-
-@app.route('/***', methods=['POST'])
-@login_required
-def to_rating_page():
-    """
-    Find all users that the current user need
-    to rate (by querying DynamoDB),
-    render the rating page, and send users' info
-    to frontend.
-    """
-    records = query_inv_record(session['user_id'])
-    if len(records) == 0:
-        # No users need to rate. 
-        # return render_template()
+    ######### PARSE USER'S CHOICES ###########
+    pass
+    invitees = ['1','2','3','4']
+    ##########################################
+    ####### SEND INVITATION EMAILS ###########
+    for uid in invitees:
         pass
+    ##########################################
+    inv_group = [session['user_id']] + invitees
+    append_inv_records(inv_group)
 
-    uid_list = []
-    for record in records:
-        uid_list.append(record['partner'])
-
-    db = get_db()
-    profiles = read_profile(db, uid_list)
-    return render_template('***.html', profiles=profiles)
+    return None
 
 
 
 @app.route('/rate', methods=['GET', 'POST'])
-def rate_partner():
+def rate_partners():
     """
     Rate partners. 
+    Enter this function by clicking "Rate!" button.
     """
     db = get_db()
-    ##### DATA NEEDED ######
-    # 1. ratee's id
-    # 2. ratee's rating
-    ratee_id = '1'
-    ratee_rating = 5.0
-    ########################
-    update_records(db=db, uid=ratee_id, rating=ratee_rating,
-                   rating_ctr=1)
-    return None
+    utr = query_dynamo(session['user_id'])   # utr: users to rate
+    utr_profiles = read_profile(db, utr)   # Profiles of these users
 
+    ### Send 'utr_profiles' to frontend ###
+
+    #######################################
+    ######## Receive User's rating ########
+
+    #######################################
+    session['unhandled_rating'] = False
+    # Update user's profile, pay attention to user's workout catagory
+    update_records(db=db, uid=session['user_id'], ctr=1, bas_ctr=1)
+    # Update partner's profile.
+    update_records(db=db, uid=partner_id, rating=4, rating_ctr=1)
 
 if __name__ == '__main__':
     app.run(debug=True)
