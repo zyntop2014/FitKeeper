@@ -21,28 +21,7 @@
       <link rel="stylesheet" href="{{ url_for('static', filename='css/tstyle.css') }}">
 
     <link href="../static/css/bootstrap-datetimepicker.min.css" rel="stylesheet" media="screen">
-     <script type="text/javascript">
-            function validateForm() {
-                var address= document.forms["information"]["youraddress"].value;
-                if(address == "") {
-                    alert("Address must be filled out");
-                    return false;
-                    };  
-
-
-                var lastname= document.forms["information"]["yourlastname"].value;
-                if(lastname == "") {
-                    alert("Your last name must be filled out");
-                    return false;
-                    };   
-
-                var firstname= document.forms["information"]["firstname"].value;
-                if( firstname == "") {
-                    alert("Your first name must be filled out");
-                    return false;
-                    };                        
-            }
-    </script>
+  
     <title>Places Searchbox</title>
     <style>
       /* Always set the map height explicitly to define the size of the div
@@ -174,32 +153,66 @@
     <form name="information" class="form-horizontal"  role="form", method="post" action="{{ url_for('supplement_profile') }}", onsubmit="return validateForm()">
             
                 <div class="row">
-                    <div class="col-sm-6">
+                    <div class="col-sm-4">
                         <label for="yourfirstname">First Name:</label><br>
-                        <input type="text" name="yourfirstname" /><br /><br>
+                        <input type="text" name="yourfirstname" /><br />
                     </div>
 
-                    <div class="col-sm-6">
+                    <div class="col-sm-4">
                       <div class="form-group">
                         <label for="yourlastname">Last Name:</label><br>
-                        <input type="text" name="yourlastname" /><br /><br>
+                        <input type="text" name="yourlastname" /><br />
                       </div>
+                    </div>           
+                </div>
+
+
+                <div class="row">
+                    <div class="col-sm-4">
+                        <label for="yourbasketball">Rate your basketball skils: 1-10 scores</label>
+                        <input type="text" name="yourbasketball" /><br /><br>
                     </div>
 
-                    <!--<div class="col-sm-6">
-                       <div class="form-group">
-                        <label for="youremail">Email:</label><br>
-                        <input type="text" name="youremail" /><br />
-                        </div>
+                    <div class="col-sm-4">
+                      <div class="form-group">
+                        <label for="yourswimming">Rate your swimming skills: 1-10 scores</label>
+                        <input type="text" name="yourswimming" /><br />
+                      </div>
+                    </div>           
+                </div>
 
-                    </div>-->
-                      
+                <div class="row">
+                    <div class="col-sm-4">
+                        <label for="yourcardio">Rate your cardio skils: 1-10 scores</label>
+                        <input type="text" name="yourcardio" /><br />
+                    </div>
+
+                    <div class="col-sm-4">
+                      <div class="form-group">
+                        <label for="yourstrength">Rate your strength skills: 1-10 scores</label>
+                        <input type="text" name="yourstrength" /><br />
+                      </div>
+                    </div>           
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-4">
+                        <label for="yoursquash">Rate your squash skils: 1-10 socres</label>
+                        <input type="text" name="yoursquash" /><br />
+                    </div>
+
+                    <div class="col-sm-4">
+                      <div class="form-group">
+                        <label for="your">Rate your running skills: 1-10 scores</label>
+                        <input type="text" name="yourrunning" /><br />
+                      </div>
+                    </div>           
                 </div>
 
                 
 
                 <div class="row">
-                    <div class="col-sm-6">
+                    <div class="col-sm-4">
                       <label for="yourgender">Gender:</label> 
                         <br>
                             <input type="radio" name="gender" value="male" checked> Male
@@ -209,7 +222,7 @@
 
                     </div>
 
-                    <div class="col-sm-6">
+                    <div class="col-sm-4">
                         <div class="form-group">
                         <label for="dtp_input2" >Birthdate:</label><br>
                         <div class="input-group date form_date col-sm-5"  data-date="" data-date-format='yyyy-mm-dd' data-link-field="dtp_input2" data-link-format="yyyy-mm-dd">
@@ -230,14 +243,14 @@
               </div>
 
               <div class="row">
-                <div class="col-sm-6"> 
-                        <label for="youraddress">Please mark your address on map:</label><br>
+                <div class="col-sm-4"> 
+                        <br><label for="youraddress">Please mark your address on map:</label><br>
                         your location: <input id='address' type="text" name="youraddress" readonly="readonly"/> <br>
 
                 </div>
          
             <br>
-            <div class="col-sm-6"> <!-- Submit button -->
+            <div class="col-sm-4"> <!-- Submit button -->
             <div class="form-group">
                     <button class="btn btn-primary btn-lg" name="submit" type="submit">Submit</button>
             </div> 
@@ -388,9 +401,119 @@
 
                         var fn = document.forms['information']['yourlastname'].value;
                         if (fn == "") {
-                            alert("First name must be filled out");
+                            alert("Your last name must be filled out");
                             return false;
                           }; 
+
+                        var fn = document.forms['information']['yourbasketball'].value;
+                        if (fn == "") {
+                            alert("Your basketball skills rating must be filled out");
+                            return false;
+                          }; 
+
+                        
+
+                        if(isNaN(fn)){
+                          alert("The rating score is not number");
+                          return false;
+                        };
+
+                    
+                        var num = parseFloat(fn);
+                        if (num <0 || num > 10) {
+
+                          alert("The rating score is out of range");
+                          return false;
+                        };
+
+                        var fn = document.forms['information']['yourswimming'].value;
+                        if (fn == "") {
+                            alert("Your swimming skills rating must be filled out");
+                            return false;
+                          }; 
+
+                        
+
+                        if(isNaN(fn)){
+                          alert("The rating score is not number");
+                          return false;
+                        };
+
+                    
+                        var num = parseFloat(fn);
+                        if (num <0 || num > 10) {
+
+                          alert("The rating score is out of range");
+                          return false;
+                        };
+
+                        var fn = document.forms['information']['yourstrength'].value;
+                        if (fn == "") {
+                            alert("Your strength skills rating must be filled out");
+                            return false;
+                          }; 
+
+                        
+
+                        if(isNaN(fn)){
+                          alert("The rating score is not number");
+                          return false;
+                        };
+
+                    
+                        var num = parseFloat(fn);
+                        if (num <0 || num > 10) {
+
+                          alert("The rating score is out of range");
+                          return false;
+                        };
+
+                        var fn = document.forms['information']['yourcardio'].value;
+                        if (fn == "") {
+                            alert("Your cardio skills rating must be filled out");
+                            return false;
+                          }; 
+
+                        
+
+                        if(isNaN(fn)){
+                          alert("The rating score is not number");
+                          return false;
+                        };
+
+                    
+                        var num = parseFloat(fn);
+                        if (num <0 || num > 10) {
+
+                          alert("The rating score is out of range");
+                          return false;
+                        };
+
+                        var fn = document.forms['information']['yoursquash'].value;
+                        if (fn == "") {
+                            alert("Your squash skills rating must be filled out");
+                            return false;
+                          }; 
+
+                        
+
+                        if(isNaN(fn)){
+                          alert("The rating score is not number");
+                          return false;
+                        };
+
+                    
+                        var num = parseFloat(fn);
+                        if (num <0 || num > 10) {
+
+                          alert("The rating score is out of range");
+                          return false;
+                        };
+
+
+
+
+
                              
                     }
         </script>
