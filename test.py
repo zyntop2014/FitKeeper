@@ -101,13 +101,12 @@ def g_index():
 
     # Successful login. Extract user information
     session['logged_in'] = True  
-    session['ses_conn'] = conn_ses()
     profile = json.loads(res.read())
     print json.dumps(profile, indent=4, sort_keys=True)
     google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
     session['user_id'] = profile['id']
-    sns_verification(session['ses_conn'], profile['email'])
+    ses_verification(conn_ses(), profile['email'])
     # if is_in_dynamo(session['user_id']) == False:
     #     # No unhandled ratings in Dynamo
     #     session['unhandled_rating'] = False
@@ -193,7 +192,6 @@ def logout():
     session.pop('calendar', None)
     session.pop('comp_info', None)
     session.pop('unhandled_rating', None)
-    session.pop('ses_conn', None)
     flash('You were logged out.')
     return redirect(url_for('welcome'))
 

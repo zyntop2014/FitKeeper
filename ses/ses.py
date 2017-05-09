@@ -41,19 +41,19 @@ def is_email_verified(conn, user_email):
     """
 	Determine if user's email varified by AWS.
 	"""
-	addr_list = []
-	res = conn.list_verified_email_addresses()
-	temp = res['ListVerifiedEmailAddressesResponse']['ListVerifiedEmailAddressesResult']['VerifiedEmailAddresses']
-	for addr in temp:
+    addr_list = []
+    res = conn.list_verified_email_addresses()
+    temp = res['ListVerifiedEmailAddressesResponse']['ListVerifiedEmailAddressesResult']['VerifiedEmailAddresses']
+    for addr in temp:
 		addr_list.append(str(addr))
 	
-	return True if user_email in addr_list else False
+    return True if user_email in addr_list else False
 
-def sns_verification(conn, user_email):
+def ses_verification(conn, user_email):
     if not is_email_verified(conn, user_email):
     	verify_email(conn, user_email)
-		print "[SES] Sent SNS Verification."
-	else:
+        print "[SES] Sent SES Verification."
+    else:
     	print "[SES] This email address has been verified."
 	return None
 
