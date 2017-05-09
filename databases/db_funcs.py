@@ -55,11 +55,11 @@ def user_init(db, profile):
                 (uid, name, email, family_name, given_name, photo, bas_ctr, \
                 str_ctr, car_ctr, swi_ctr, squ_ctr, rating, rating_ctr, signup_date) \
                 VALUES \
-                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,c %s, %s, %s, %s)",
                 (str(profile['id']), str(profile['name']), str(profile['email']),
                  str(profile['family_name']), str(profile['given_name']),
-                 str(profile['picture']), str(0), str(0),
-                 str(0), str(0), str(0), str(0), str(0), str(signup_date),))
+                 str(profile['picture']), str(0.0), str(0.0),
+                 str(0.0), str(0.0), str(0.0), str(0), str(0), str(signup_date),))
             db.commit()
             print "[user_init]Initialized user profile."
         except:
@@ -129,7 +129,7 @@ def find_by_id(db, id):
     return None
 
 
-def update_profile(db, id, fn, ln, bas_ctr, str_ctr,
+def update_profile(db, uid, fn, ln, bas_ctr, str_ctr,
                    car_ctr, swi_ctr, squ_ctr, 
                    gender, lat, lng, dob):
     """
@@ -139,17 +139,18 @@ def update_profile(db, id, fn, ln, bas_ctr, str_ctr,
     """
     cur = db.cursor()
     full_name = fn + ' ' + ln
+    
     try:
         cur.execute("UPDATE USERS \
                      SET lat = %s, lng = %s, name = %s, dob = %s, \
                          given_name = %s, family_name = %s, \
                          bas_ctr = %s, str_ctr = %s, car_ctr = %s, \
-                         swi_ctr = %s, squ_ctr = %s \
+                         swi_ctr = %s, squ_ctr = %s, \
                          gender = %s \
                      WHERE uid = %s",
-                    (str(lat), str(lng), str(full_nmae), str(dob), str(fn),
-                     str(bas_ctr), str(str_ctr), str(car_ctr), 
-                     str(swi_ctr), str(squ_ctr), str(ln), str(gender), str(id),))
+                    (str(lat), str(lng), str(full_name), str(dob), str(fn),
+                     str(ln), str(bas_ctr), str(str_ctr), str(car_ctr), 
+                     str(swi_ctr), str(squ_ctr), str(gender), str(uid),))
         db.commit()
         print "[USERS DB] Updated user's profile."
     except:
@@ -194,7 +195,7 @@ def read_db_to_ml(db):
                             FROM USERS")
     res = []
     for row in cur:
-        r = (row[1], row[2], row[3], row[4], row[5])
+        r = (row[0], row[1], row[2], row[3], row[4], row[5])
         res.append(r)
     cur.close()
     # print res

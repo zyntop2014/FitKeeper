@@ -334,9 +334,18 @@ def supplement_profile():
     latlng = address.strip('()').split()
     lat, lng = latlng[0], latlng[1]
 
+    # TEST DATA
+    bas_ctr = 4.5
+    str_ctr = 5.0
+    car_ctr = 1.0
+    swi_ctr = 3.5
+    squ_ctr = 0.5
+
     # Update profile database
     db = get_db()
-    update_profile(db, session['user_id'], fn, ln, gender, lat, lng, birthdate)
+    update_profile(db, session['user_id'], fn, ln, bas_ctr, str_ctr,
+                   car_ctr, swi_ctr, squ_ctr, 
+                   gender, lat, lng, birthdate)
     if is_profile_complete(db, session['user_id']):
         session['comp_info'] = True
 
@@ -383,6 +392,8 @@ def to_rating_page():
     if len(records) == 0:
         # No users need to rate. 
         # return render_template()
+        pass
+
     uid_list = []
     for record in records:
         uid_list.append(record['partner'])

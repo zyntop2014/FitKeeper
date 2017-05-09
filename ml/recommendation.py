@@ -77,6 +77,8 @@ def filtering(id, data):
     Return:
         Filter result.
     """
+    # r = (uid, age, avg_rating, (lat, lng), 
+    #          (bas_ctr, str_ctr, car_ctr, swi_ctr, squ_ctr))
     data_to_filter = []
     
     for d in data:
@@ -84,7 +86,7 @@ def filtering(id, data):
             ud = d   # ud: user's data
         else:
             data_to_filter.append(d)
-    ud_vec = ud[5]
+    ud_vec = ud[4]
     def comp_dist(x):
         """
         Compute Euclidean distance between to data points.
@@ -94,11 +96,11 @@ def filtering(id, data):
             s += (ud_vec[i] - v)**2
         return sqrt(s)
 
-    filter_by_cor = sorted(data_to_filter, key=lambda x: comp_dist(x[5]))
+    filter_by_cor = sorted(data_to_filter, key=lambda x: comp_dist(x[4]))
     filter_by_age = sorted(data_to_filter, key=lambda x: abs(x[1]-ud[1]))
     filter_by_rating = sorted(data_to_filter, key=lambda x: x[2], reverse=True)
-    filter_by_freq = sorted(data_to_filter, key=lambda x: x[3], reverse=True)
-    filter_by_dist = sorted(data_to_filter, key=lambda x: vincenty(x[4], ud[4]).miles)
+    # filter_by_freq = sorted(data_to_filter, key=lambda x: x[3], reverse=True)
+    filter_by_dist = sorted(data_to_filter, key=lambda x: vincenty(x[3], ud[3]).miles)
 
     res = {}
     # res['filter_by_age'] = filter_by_age
@@ -109,7 +111,7 @@ def filtering(id, data):
     res['filter_by_cor'] = map(lambda x: x[0], filter_by_cor)
     res['filter_by_age'] = map(lambda x: x[0], filter_by_age)
     res['filter_by_rating'] = map(lambda x: x[0], filter_by_rating)
-    res['filter_by_freq'] = map(lambda x: x[0], filter_by_freq)
+    # res['filter_by_freq'] = map(lambda x: x[0], filter_by_freq)
     res['filter_by_dist'] = map(lambda x: x[0], filter_by_dist)
 
     return res
