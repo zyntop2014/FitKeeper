@@ -12,14 +12,20 @@ with open('aws_key.txt', 'rb') as aws_file:
 
 
 # Connect to Amazon AWS
-conn = boto.ses.connect_to_region("us-east-1",
-		aws_access_key_id = access_key_id,
-		aws_secret_access_key = secret_access_key)
+def conn_ses():
+    """
+	Connect to ses.
+	"""
+    conn = boto.ses.connect_to_region("us-east-1",
+			aws_access_key_id = access_key_id,
+			aws_secret_access_key = secret_access_key)
+    return conn
 
 
-def verify_email(email_addr='yc3313@columbia.edu'):
+def verify_email(conn, email_addr='yc3313@columbia.edu'):
 	# verify an email address
 	conn.verify_email_address(email_addr)
+	pass
 
 '''
 # list the addresses that are currently verified
@@ -31,7 +37,7 @@ for addr in temp:
 # print addr_list
 '''
 
-def send_request(source='yc2763@nyu.edu', to_address='yc3313@columbia.edu', reply_addresses='yc2763@nyu.edu'):
+def send_request(conn, source='yc2763@nyu.edu', to_address='yc3313@columbia.edu', reply_addresses='yc2763@nyu.edu'):
 	# send formatted message
 	text_body = 'Hi,'+'\n'+'\n'+'    I want to make friend with you!'
 	conn.send_email(source=source,
@@ -40,3 +46,4 @@ def send_request(source='yc2763@nyu.edu', to_address='yc3313@columbia.edu', repl
                 	subject='You have a friend request @FitKeeper!',
                 	body=text_body,
                 	format='text')
+	pass
