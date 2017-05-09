@@ -5,7 +5,7 @@ import json, os
 aws_key_filename = os.path.join(os.path.dirname(__file__), 'aws_key.txt')
 
 
-with open('aws_key.txt', 'rb') as aws_file:
+with open(aws_key_filename, 'rb') as aws_file:
 	lines = aws_file.readlines()
 	access_key_id = lines[0].rstrip('\n')
 	secret_access_key = lines[1].rstrip('\n')
@@ -36,6 +36,10 @@ for addr in temp:
 	addr_list.append(str(addr))
 # print addr_list
 '''
+
+def is_email_verified():
+    
+
 
 def send_request(conn, source='yc2763@nyu.edu', to_address='yc3313@columbia.edu', reply_addresses='yc2763@nyu.edu'):
 	# send formatted message

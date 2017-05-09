@@ -11,10 +11,11 @@ import sys
 sys.path.append('calendar/')
 sys.path.append('databases/')
 sys.path.append('ml/')
+sys.path.append('ses/')
 from mycalendar import *
 from db_funcs import *
 from recommendation import *
-
+from ses import *
 #import transloc
 
 def allowed_file(filename):
@@ -100,12 +101,13 @@ def g_index():
 
     # Successful login. Extract user information
     session['logged_in'] = True  
+    session['ses_conn'] = conn_ses()
     profile = json.loads(res.read())
     print json.dumps(profile, indent=4, sort_keys=True)
     google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
     session['user_id'] = profile['id']
-
+    user_email = profile['email']
     # if is_in_dynamo(session['user_id']) == False:
     #     # No unhandled ratings in Dynamo
     #     session['unhandled_rating'] = False
@@ -191,6 +193,7 @@ def logout():
     session.pop('calendar', None)
     session.pop('comp_info', None)
     session.pop('unhandled_rating', None)
+    session.pop('ses_conn', None)
     flash('You were logged out.')
     return redirect(url_for('welcome'))
 
