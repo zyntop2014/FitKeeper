@@ -136,13 +136,14 @@ def update_profile(db, id, fn, ln, gender, lat, lng, dob):
     ln: Last Name / Family name
     """
     cur = db.cursor()
+    full_name = fn + ' ' + ln
     try:
         cur.execute("UPDATE USERS \
-                     SET lat = %s, lng = %s, dob = %s, \
+                     SET lat = %s, lng = %s, name = %s, dob = %s, \
                          given_name = %s, family_name = %s, \
                          gender = %s \
                      WHERE uid = %s",
-                    (str(lat), str(lng), str(dob), str(fn),
+                    (str(lat), str(lng), str(full_nmae), str(dob), str(fn),
                      str(ln), str(gender), str(id),))
         db.commit()
         print "[USERS DB] Updated user's profile."
