@@ -52,12 +52,12 @@ def user_init(db, profile):
         try:
             cur.execute(
                 "INSERT INTO USERS \
-                (uid, name, email, gender, family_name, given_name, photo, bas_ctr, \
+                (uid, name, email, family_name, given_name, photo, bas_ctr, \
                 str_ctr, car_ctr, swi_ctr, squ_ctr, ctr, rating, rating_ctr, signup_date) \
                 VALUES \
-                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (str(profile['id']), str(profile['name']), str(profile['email']),
-                 str(profile['gender']), str(profile['family_name']), str(profile['given_name']),
+                 str(profile['family_name']), str(profile['given_name']),
                  str(profile['picture']), str(0), str(0), str(0),
                  str(0), str(0), str(0), str(0), str(0), str(signup_date),))
             db.commit()
@@ -136,13 +136,14 @@ def update_profile(db, id, fn, ln, gender, lat, lng, dob):
     ln: Last Name / Family name
     """
     cur = db.cursor()
+    full_name = fn + ' ' + ln
     try:
         cur.execute("UPDATE USERS \
-                     SET lat = %s, lng = %s, dob = %s, \
+                     SET lat = %s, lng = %s, name = %s, dob = %s, \
                          given_name = %s, family_name = %s, \
                          gender = %s \
                      WHERE uid = %s",
-                    (str(lat), str(lng), str(dob), str(fn),
+                    (str(lat), str(lng), str(full_nmae), str(dob), str(fn),
                      str(ln), str(gender), str(id),))
         db.commit()
         print "[USERS DB] Updated user's profile."
@@ -283,12 +284,33 @@ def read_profile(db, ids):
         r['squ_ratio'] = (row[12] / float(row[13])) if row[13] else 0.0
         r['avg_rating'] = (row[14] / float(row[15])) if row[15] else 0.0
         r['age'] = calculate_age(row[7])
-        r['freq'] = float(row[13]) / (datetime.date.today()-row[16]).days
+        delta_days = (datetime.date.today()-row[16]).days
+        r['freq'] = float(row[13]) / delta_days if delta_days else 0.0
         r['addr'] = (row[17], row[18])
         res.append(r)
     
     cur.close()
     return res
+
+
+def update_photo(db, uid, url):
+    """
+    Update user's photo url.
+    """
+    cur = db.cursor()
+    try:
+        cur.execute("UPDATE USERS \
+                    SET photo = %s \
+                    WHERE uid = %s", 
+                    (str(url), str(uid),))
+        db.commit()
+        print "[USERS DB] Updated phoo URL."
+    except:
+        db.rollback()
+        print "[USERS DB] Update failed. Rollback Database."
+    cur.close()
+    return None
+
 
 
 def update_records(db, uid, ctr=0, rating=0, rating_ctr=0, bas_ctr=0, str_ctr=0,

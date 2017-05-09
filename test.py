@@ -11,10 +11,11 @@ import sys
 sys.path.append('calendar/')
 sys.path.append('databases/')
 sys.path.append('ml/')
+sys.path.append('ses/')
 from mycalendar import *
 from db_funcs import *
 from recommendation import *
-
+from ses import *
 #import transloc
 
 def allowed_file(filename):
@@ -105,6 +106,7 @@ def g_index():
     google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
     session['user_id'] = profile['id']
+    ses_verification(conn_ses(), profile['email'])
     # if is_in_dynamo(session['user_id']) == False:
     #     # No unhandled ratings in Dynamo
     #     session['unhandled_rating'] = False
@@ -265,6 +267,9 @@ def friends():
 @login_required
 @comp_profile_required
 def reservation():
+    uid = session['user_id']
+    db = get_db()
+
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -278,10 +283,15 @@ def reservation():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
+            update_photo(db, uid, filename)   # Update photo URL
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             print "save"
             return redirect(url_for('reservation',filename=filename))
-    return render_template('reservations/index.html')
+    
+    # 'GET' method. 
+    query_res = read_profile(db, (uid,))
+    # print query_res[0]
+    return render_template('reservations/index.html', profile=query_res[0])
 
 
 @app.route('/buslist', methods=['GET', 'POST'])
@@ -356,6 +366,13 @@ def send_invitations():
 
     return None
 
+
+@app.route('/accinv/<invitor_id>', methods=['GET'])
+def accept_invitation():
+    """
+    URL for accepting invitation.
+    """
+    print invitor_id
 
 
 @app.route('/rate', methods=['GET', 'POST'])

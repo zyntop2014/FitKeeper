@@ -27,7 +27,20 @@
                 if(address == "") {
                     alert("Address must be filled out");
                     return false;
-                    };                           
+                    };  
+
+
+                var lastname= document.forms["information"]["yourlastname"].value;
+                if(lastname == "") {
+                    alert("Your last name must be filled out");
+                    return false;
+                    };   
+
+                var firstname= document.forms["information"]["firstname"].value;
+                if( firstname == "") {
+                    alert("Your first name must be filled out");
+                    return false;
+                    };                        
             }
     </script>
     <title>Places Searchbox</title>
@@ -167,8 +180,10 @@
                     </div>
 
                     <div class="col-sm-6">
+                      <div class="form-group">
                         <label for="yourlastname">Last Name:</label><br>
                         <input type="text" name="yourlastname" /><br /><br>
+                      </div>
                     </div>
 
                     <!--<div class="col-sm-6">
