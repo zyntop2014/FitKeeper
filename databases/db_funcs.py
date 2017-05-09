@@ -234,20 +234,26 @@ def read_db_to_filter(db, ids):
     res = []
 
     for row in cur:
+        uid = row[0]
         birth_date = row[1]
         age = calculate_age(birth_date)    # filter feature
-        avg_rating = (float(row[2])/row[3]) if row[4] else 0.0   # filter feature
-        signup_date = row[5]
-        days_delta = (today-signup_date).days
-        freq = (float(row[2])/days_delta) if days_delta else 0.0   # filter feature
-        lat, lng = row[6], row[7]
-        bas_ratio = (float(row[8])/row[2]) if row[2] else 0
-        str_ratio = (float(row[9])/row[2]) if row[2] else 0
-        car_ratio = (float(row[10])/row[2]) if row[2] else 0
-        swi_ratio = (float(row[11])/row[2]) if row[2] else 0
-        squ_ratio = (float(row[12])/row[2]) if row[2] else 0
-        r = (row[0], age, avg_rating, freq, (lat, lng), 
-             (bas_ratio, str_ratio, car_ratio, swi_ratio, squ_ratio))
+        avg_rating = (float(row[2])/row[3]) if row[3] else 0.0   # filter feature
+        signup_date = row[4]
+        # days_delta = (today-signup_date).days
+        # freq = (float(row[2])/days_delta) if days_delta else 0.0   # filter feature
+        lat, lng = row[5], row[6]
+        # bas_ratio = (float(row[8])/row[2]) if row[2] else 0
+        # str_ratio = (float(row[9])/row[2]) if row[2] else 0
+        # car_ratio = (float(row[10])/row[2]) if row[2] else 0
+        # swi_ratio = (float(row[11])/row[2]) if row[2] else 0
+        # squ_ratio = (float(row[12])/row[2]) if row[2] else 0
+        bas_ctr = row[7]
+        str_ctr = row[8]
+        car_ctr = row[9]
+        swi_ctr = row[10]
+        squ_ctr = row[11]
+        r = (uid, age, avg_rating, (lat, lng), 
+             (bas_ctr, str_ctr, car_ctr, swi_ctr, squ_ctr))
         res.append(r)
 
     cur.close()
@@ -286,23 +292,15 @@ def read_profile(db, ids):
         r['car_ctr'] = row[10]
         r['swi_ctr'] = row[11]
         r['squ_ctr'] = row[12]
-        r['ctr'] = row[13]
-        r['rating'] = row[14]
-        r['rating_ctr'] = row[15]
-        r['signup_date'] = row[16]
-        r['lat'] = row[17]
-        r['lng'] = row[18]
+        r['rating'] = row[13]
+        r['rating_ctr'] = row[14]
+        r['signup_date'] = row[15]
+        r['lat'] = row[16]
+        r['lng'] = row[17]
         # Derived Data
-        r['bas_ratio'] = (row[8] / float(row[13])) if row[13] else 0.0
-        r['str_ratio'] = (row[9] / float(row[13])) if row[13] else 0.0
-        r['car_ratio'] = (row[10] / float(row[13])) if row[13] else 0.0
-        r['swi_ratio'] = (row[11] / float(row[13])) if row[13] else 0.0
-        r['squ_ratio'] = (row[12] / float(row[13])) if row[13] else 0.0
-        r['avg_rating'] = (row[14] / float(row[15])) if row[15] else 0.0
+        r['avg_rating'] = (row[13] / float(row[14])) if row[14] else 0.0
         r['age'] = calculate_age(row[7])
-        delta_days = (datetime.date.today()-row[16]).days
-        r['freq'] = float(row[13]) / delta_days if delta_days else 0.0
-        r['addr'] = (row[17], row[18])
+        r['addr'] = (row[16], row[17])
         res.append(r)
     
     cur.close()
@@ -339,7 +337,7 @@ def update_records(db, uid, ctr=0, rating=0, rating_ctr=0, bas_ctr=0, str_ctr=0,
 
     # Read record to be updated
     cur.execute("SELECT uid, bas_ctr, str_ctr, car_ctr, swi_ctr, \
-                        squ_ctr, ctr, rating, rating_ctr \
+                        squ_ctr, rating, rating_ctr \
                  FROM USERS \
                  WHERE uid = %s",
                 (str(uid),)
@@ -352,16 +350,15 @@ def update_records(db, uid, ctr=0, rating=0, rating_ctr=0, bas_ctr=0, str_ctr=0,
     car_ctr += res[3]
     swi_ctr += res[4]
     squ_ctr += res[5]
-    ctr += res[6]
-    rating += res[7]
-    rating_ctr += res[8]
+    rating += res[6]
+    rating_ctr += res[7]
     data = (str(bas_ctr), str(str_ctr),
             str(car_ctr), str(swi_ctr), str(squ_ctr),
-            str(ctr), str(rating), str(rating_ctr), str(uid),)
+            str(rating), str(rating_ctr), str(uid),)
     try:
         cur.execute("UPDATE USERS \
                     SET bas_ctr = %s, str_ctr = %s, car_ctr = %s, \
-                        swi_ctr = %s, squ_ctr = %s, ctr = %s, \
+                        swi_ctr = %s, squ_ctr = %s, \
                         rating = %s, rating_ctr = %s \
                     WHERE uid = %s",
                     data)
