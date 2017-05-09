@@ -49,6 +49,7 @@ def is_email_verified(conn, user_email):
 	
     return True if user_email in addr_list else False
 
+
 def ses_verification(conn, user_email):
     if not is_email_verified(conn, user_email):
     	verify_email(conn, user_email)
@@ -56,6 +57,7 @@ def ses_verification(conn, user_email):
     else:
     	print "[SES] This email address has been verified."
 	return None
+
 
 def send_request(conn, source='yc2763@nyu.edu', to_address='yc3313@columbia.edu', reply_addresses='yc2763@nyu.edu'):
 	# send formatted message
@@ -66,4 +68,4 @@ def send_request(conn, source='yc2763@nyu.edu', to_address='yc3313@columbia.edu'
                 	subject='You have a friend request @FitKeeper!',
                 	body=text_body,
                 	format='text')
-	pass
+	return None
