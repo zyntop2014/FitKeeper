@@ -85,26 +85,22 @@ def gen_profile(id):
     suffix = '@example.com'
     p['email'] = prefix + suffix
 
-    # Generate workout record
-    MIN = 0
-    MAX = 50
-    A = random.randint(MIN, MAX)
-    B = random.randint(MIN, MAX)
-    C = random.randint(MIN, MAX)
-    D = random.randint(MIN, MAX)
-    E = random.randint(MIN, MAX)
-    total = A + B + C + D + E
+    # Generate workout self-rating
+    # MIN = 0.0
+    # MAX = 5.0
+    WORKOUT_RATINGS = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0,
+                       3.5, 4.0, 4.5, 5.0]
+    A = WORKOUT_RATINGS[random.randint(0, len(WORKOUT_RATINGS)-1)]
+    B = WORKOUT_RATINGS[random.randint(0, len(WORKOUT_RATINGS)-1)]
+    C = WORKOUT_RATINGS[random.randint(0, len(WORKOUT_RATINGS)-1)]
+    D = WORKOUT_RATINGS[random.randint(0, len(WORKOUT_RATINGS)-1)]
+    E = WORKOUT_RATINGS[random.randint(0, len(WORKOUT_RATINGS)-1)]
+
     p['bas_times'] = A
     p['str_times'] = B
     p['car_times'] = C
     p['swi_times'] = D
     p['squ_times'] = E
-    p['total_times'] = total
-    
-    # Generate signup date
-    delta = random.randint(total, 365)
-    sd = today - datetime.timedelta(days=delta)   # sd: signup date
-    p['signup_date'] = str(sd.year) + '-' + str(sd.month) + '-' + str(sd.day)
     
     # Generate ratings
     def gen_ratings():
@@ -122,9 +118,14 @@ def gen_profile(id):
         return rating
     
     rating = gen_ratings()
-    p['num_rating_times'] = int(total*random.uniform(1, 3))
+    p['num_rating_times'] = random.randint(10, 50)
     p['total_rating'] = int(rating*p['num_rating_times'])
     
+    # Generate signup date
+    delta = random.randint(p['num_rating_times'], 365)
+    sd = today - datetime.timedelta(days=delta)   # sd: signup date
+    p['signup_date'] = str(sd.year) + '-' + str(sd.month) + '-' + str(sd.day)
+
     # Generate home address location (lat & lng)
     p['lat'], p['lng'] = gen_lat_lng()
     
@@ -140,12 +141,12 @@ def write_to_db(db, p):
         cur.execute(
             "INSERT INTO USERS \
             (uid, name, email, dob, gender, family_name, given_name, photo, bas_ctr, \
-            str_ctr, car_ctr, swi_ctr, squ_ctr, ctr, rating, rating_ctr, signup_date, lat, lng) \
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            str_ctr, car_ctr, swi_ctr, squ_ctr, rating, rating_ctr, signup_date, lat, lng) \
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             (str(p['id']), str(p['full_name']), str(p['email']), str(p['dob']),
              str(p['gender']), str(p['last_name']), str(p['first_name']),
              str(p['picture']), str(p['bas_times']), str(p['str_times']), str(p['car_times']),
-             str(p['swi_times']), str(p['squ_times']), str(p['total_times']), str(p['total_rating']), 
+             str(p['swi_times']), str(p['squ_times']), str(p['total_rating']), 
              str(p['num_rating_times']), str(p['signup_date']), str(p['lat']), str(p['lng']),))
         db.commit()
 
