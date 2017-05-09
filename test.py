@@ -107,7 +107,7 @@ def g_index():
     google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
     session['user_id'] = profile['id']
-    user_email = profile['email']
+    sns_verification(session['ses_conn'], profile['email'])
     # if is_in_dynamo(session['user_id']) == False:
     #     # No unhandled ratings in Dynamo
     #     session['unhandled_rating'] = False

@@ -25,7 +25,7 @@ def conn_ses():
 def verify_email(conn, email_addr='yc3313@columbia.edu'):
 	# verify an email address
 	conn.verify_email_address(email_addr)
-	pass
+	return None
 
 '''
 # list the addresses that are currently verified
@@ -37,9 +37,25 @@ for addr in temp:
 # print addr_list
 '''
 
-def is_email_verified():
-    
+def is_email_verified(conn, user_email):
+    """
+	Determine if user's email varified by AWS.
+	"""
+	addr_list = []
+	res = conn.list_verified_email_addresses()
+	temp = res['ListVerifiedEmailAddressesResponse']['ListVerifiedEmailAddressesResult']['VerifiedEmailAddresses']
+	for addr in temp:
+		addr_list.append(str(addr))
+	
+	return True if user_email in addr_list else False
 
+def sns_verification(conn, user_email):
+    if not is_email_verified(conn, user_email):
+    	verify_email(conn, user_email)
+		print "[SES] Sent SNS Verification."
+	else:
+    	print "[SES] This email address has been verified."
+	return None
 
 def send_request(conn, source='yc2763@nyu.edu', to_address='yc3313@columbia.edu', reply_addresses='yc2763@nyu.edu'):
 	# send formatted message
