@@ -1,5 +1,9 @@
 import boto.ses
-import json
+import json, os
+
+
+aws_key_filename = os.path.join(os.path.dirname(__file__), 'aws_key.txt')
+
 
 with open('aws_key.txt', 'rb') as aws_file:
 	lines = aws_file.readlines()
