@@ -106,12 +106,9 @@ def g_index():
     google_calendar = json.loads(res_cal.read())
     session['profile'] = profile
     session['user_id'] = profile['id']
+    session['user_email'] = profile['email']
     ses_verification(conn_ses(), profile['email'])
-    # if is_in_dynamo(session['user_id']) == False:
-    #     # No unhandled ratings in Dynamo
-    #     session['unhandled_rating'] = False
-    # else:
-    #     session['unhandled_rating'] = True
+
 
     # session['calendar'] = google_calendar['items']  # When not commented out, buslist cannot be accessed
     # add_event(google, session['access_token'][0], start_time='0.0', end_time='0.0', summary='')
@@ -191,7 +188,7 @@ def logout():
     session.pop('profile', None)
     session.pop('calendar', None)
     session.pop('comp_info', None)
-    session.pop('unhandled_rating', None)
+    session.pop('user_email', None)
     flash('You were logged out.')
     return redirect(url_for('welcome'))
 
@@ -347,55 +344,71 @@ def supplement_profile():
     return render_template('index.html')
 
 
-# @app.route('***', methods=['POST'])
-def send_invitations():
+@app.route('/sendinv/<invitee_id>')
+@login_required
+def send_invitation(invitee_id):
     """
-    Send invitations based on user's choices,
-    and save application records to DynamoDB.
+    Send an invitation to 'invitee'
+    using AWS SES service.
     """
-    ######### PARSE USER'S CHOICES ###########
-    pass
-    invitees = ['1','2','3','4']
-    ##########################################
-    ####### SEND INVITATION EMAILS ###########
-    for uid in invitees:
-        pass
-    ##########################################
-    inv_group = [session['user_id']] + invitees
-    append_inv_records(inv_group)
-
+    db = get_db()
+    invitee_email = get_user_email(db, invitee_id)
+    send_request(conn=conn_ses(), source=session['user_email'],
+                 to_address=invitee_email, 
+                 reply_addresses=session['user_email'])
     return None
 
 
-@app.route('/accinv/<invitor_id>', methods=['GET'])
-def accept_invitation():
+@app.route('/accinv/<string:a_uid>/<string:b_uid>', methods=['GET'])
+def accept_invitation(a_uid, b_uid):
     """
     URL for accepting invitation.
+    Append invitation records(A->B & B->A)
+    to DynamoDB.
     """
-    print invitor_id
+    write_inv_record(a_uid, b_uid)
+    return None
+
+
+@app.route('/***', methods=['POST'])
+@login_required
+def to_rating_page():
+    """
+    Find all users that the current user need
+    to rate (by querying DynamoDB),
+    render the rating page, and send users' info
+    to frontend.
+    """
+    records = query_inv_record(session['user_id'])
+    if len(records) == 0:
+        # No users need to rate. 
+        # return render_template()
+    uid_list = []
+    for record in records:
+        uid_list.append(record['partner'])
+
+    db = get_db()
+    profiles = read_profile(db, uid_list)
+    return render_template('***.html', profiles=profiles)
+
 
 
 @app.route('/rate', methods=['GET', 'POST'])
-def rate_partners():
+def rate_partner():
     """
     Rate partners. 
-    Enter this function by clicking "Rate!" button.
     """
     db = get_db()
-    utr = query_dynamo(session['user_id'])   # utr: users to rate
-    utr_profiles = read_profile(db, utr)   # Profiles of these users
+    ##### DATA NEEDED ######
+    # 1. ratee's id
+    # 2. ratee's rating
+    ratee_id = '1'
+    ratee_rating = 5.0
+    ########################
+    update_records(db=db, uid=ratee_id, rating=ratee_rating,
+                   rating_ctr=1)
+    return None
 
-    ### Send 'utr_profiles' to frontend ###
-
-    #######################################
-    ######## Receive User's rating ########
-
-    #######################################
-    session['unhandled_rating'] = False
-    # Update user's profile, pay attention to user's workout catagory
-    update_records(db=db, uid=session['user_id'], ctr=1, bas_ctr=1)
-    # Update partner's profile.
-    update_records(db=db, uid=partner_id, rating=4, rating_ctr=1)
 
 if __name__ == '__main__':
     app.run(debug=True)

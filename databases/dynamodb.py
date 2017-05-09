@@ -1,4 +1,4 @@
-import boto, datetime, os
+import boto, datetime, os, datetime
 import boto.dynamodb2
 
 
@@ -48,51 +48,44 @@ DYNAMODB_TABLE_NAME = 'GymPlanner'
 mytable = Table(DYNAMODB_TABLE_NAME, connection=client_dynamo)
 
 
-def write_dynamo(d):
+def write_inv_record(uid_1, uid_2):
     """
-    Append record to DynamoDB.
-    Data to be written to Dynamo:
-        uid: ID of user (the "inviter")
-        timestamp: time that invitation happens
-        partners: Users are invited.
-                  A list of IDs
+    Write invitation record to DynamoDB.
+    uid: Partition Key
+    partner: Value
     """
-    mytable.put_item(
-        data={
-            'uid': d['uid'],
-            'timestamp': d['timestamp'],
-            'partners': d['partners']
-        },
-        overwrite=True
-    )
+    d = {}
+    d2 = {}
+    now = datetime.datetime.now().isoformat()
+
+    d['uid'] = uid_1
+    d['timestamp'] = now
+    d['partner'] = uid_2
+
+    d2['uid'] = uid_2
+    d2['timestamp'] = now
+    d2['partner'] = uid_1
+
+    mytable.put_item(d, overwrite=True)
+    mytable.put_item(d2, overwrite=True)
     return None
 
 
-def is_in_dynamo(uid):
+def query_inv_record(uid):
     """
-    Determine whether there's a record in DynamoDB
-    with uid as the (hash) key.
+    Get all invitation records (for rating purposes).
+    If no records, return an empty list.
     """
-    try:
-        data = mytable.get_item(uid=uid)
-        return True
-    except ItemNotFound:
-        return False
-
-
-def query_dynamo(uid):
-    """
-    Read records from Dynamo.
-    Return:
-        res: A list of IDs, unicode type.
-    """
-    try:
-        data = mytable.get_item(uid=uid)   # Only one row, so no iterables
-        res = data['partners']
-    except ItemNotFound:
-        return None
-
-    return res
+    records = mytable.query_2(uid__eq=uid)
+    res = []
+    for record in records:
+        d = {}
+        d['uid'] = record['uid']
+        d['timestamp'] = record['timestamp']
+        d['partner'] = record['partner']
+        res.append(d)
+    
+    return res 
 
 
 def append_inv_records(uids):

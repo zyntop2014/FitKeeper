@@ -11,12 +11,11 @@ CREATE TABLE USERS (
     given_name char(20),
     gender char(8),
     dob date,
-    bas_ctr int,  -- bas: Basketball
-    str_ctr int,  -- str: Strength
-    car_ctr int,  -- car: Cardio
-    swi_ctr int,  -- swi: Swimming
-    squ_ctr int,  -- squ: Squash
-    ctr int,
+    bas_ctr float,  -- bas: Basketball
+    str_ctr float,  -- str: Strength
+    car_ctr float,  -- car: Cardio
+    swi_ctr float,  -- swi: Swimming
+    squ_ctr float,  -- squ: Squash
     rating int,
     rating_ctr int,
     signup_date date,

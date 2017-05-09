@@ -53,18 +53,18 @@ def user_init(db, profile):
             cur.execute(
                 "INSERT INTO USERS \
                 (uid, name, email, family_name, given_name, photo, bas_ctr, \
-                str_ctr, car_ctr, swi_ctr, squ_ctr, ctr, rating, rating_ctr, signup_date) \
+                str_ctr, car_ctr, swi_ctr, squ_ctr, rating, rating_ctr, signup_date) \
                 VALUES \
                 (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (str(profile['id']), str(profile['name']), str(profile['email']),
                  str(profile['family_name']), str(profile['given_name']),
-                 str(profile['picture']), str(0), str(0), str(0),
+                 str(profile['picture']), str(0), str(0),
                  str(0), str(0), str(0), str(0), str(0), str(signup_date),))
             db.commit()
             print "[user_init]Initialized user profile."
         except:
             db.rollback()
-            print '[user_init]Database rollback.' 
+            print '[user_init]Database rollback.'
         
     else:
         print "[user_init]Found user profile in DB."
@@ -129,7 +129,9 @@ def find_by_id(db, id):
     return None
 
 
-def update_profile(db, id, fn, ln, gender, lat, lng, dob):
+def update_profile(db, id, fn, ln, bas_ctr, str_ctr,
+                   car_ctr, swi_ctr, squ_ctr, 
+                   gender, lat, lng, dob):
     """
     Update user's profile.
     fn: First Name / Given Name
@@ -141,10 +143,13 @@ def update_profile(db, id, fn, ln, gender, lat, lng, dob):
         cur.execute("UPDATE USERS \
                      SET lat = %s, lng = %s, name = %s, dob = %s, \
                          given_name = %s, family_name = %s, \
+                         bas_ctr = %s, str_ctr = %s, car_ctr = %s, \
+                         swi_ctr = %s, squ_ctr = %s \
                          gender = %s \
                      WHERE uid = %s",
                     (str(lat), str(lng), str(full_nmae), str(dob), str(fn),
-                     str(ln), str(gender), str(id),))
+                     str(bas_ctr), str(str_ctr), str(car_ctr), 
+                     str(swi_ctr), str(squ_ctr), str(ln), str(gender), str(id),))
         db.commit()
         print "[USERS DB] Updated user's profile."
     except:
@@ -152,6 +157,21 @@ def update_profile(db, id, fn, ln, gender, lat, lng, dob):
         print "[USERS DB] Update failed. Rollback Database."
     cur.close()
     return None
+
+
+def get_user_email(db, uid):
+    """
+    Read user's email from profile DB.
+    """
+    cur = db.cursor()
+    num_records = cur.execute("SELECT email \
+                               FROM USERS \
+                               WHERE uid = %s",
+                               (str(uid),))
+    record = cur.fetchall()[0]
+    cur.close()
+
+    return record[0]
 
 
 def read_db_to_ml(db):
@@ -170,15 +190,11 @@ def read_db_to_ml(db):
     # Read id, ctrs of ALL data
     # num_rows: # of rows returned
     # iterate "cur" to get each row of returned data
-    num_rows = cur.execute("SELECT uid, bas_ctr, str_ctr, car_ctr, swi_ctr, squ_ctr, ctr \
+    num_rows = cur.execute("SELECT uid, bas_ctr, str_ctr, car_ctr, swi_ctr, squ_ctr \
                             FROM USERS")
     res = []
     for row in cur:
-        s = float(row[6])  # s: total # of workout times
-        if s == 0.0:
-            r = (row[0], 0.0, 0.0, 0.0, 0.0, 0.0,)
-        else:
-            r = (row[0], row[1]/s, row[2]/s, row[3]/s, row[4]/s, row[5]/s,)
+        r = (row[1], row[2], row[3], row[4], row[5])
         res.append(r)
     cur.close()
     # print res
@@ -210,7 +226,7 @@ def read_db_to_filter(db, ids):
     """
     today = datetime.date.today()
     cur = db.cursor()
-    query = "SELECT uid, dob, ctr, rating, rating_ctr, signup_date, lat, lng,\
+    query = "SELECT uid, dob, rating, rating_ctr, signup_date, lat, lng,\
              bas_ctr, str_ctr, car_ctr, swi_ctr, squ_ctr \
              FROM USERS \
              WHERE uid IN (%s)" % ','.join(ids)
@@ -220,7 +236,7 @@ def read_db_to_filter(db, ids):
     for row in cur:
         birth_date = row[1]
         age = calculate_age(birth_date)    # filter feature
-        avg_rating = (float(row[3])/row[4]) if row[4] else 0.0   # filter feature
+        avg_rating = (float(row[2])/row[3]) if row[4] else 0.0   # filter feature
         signup_date = row[5]
         days_delta = (today-signup_date).days
         freq = (float(row[2])/days_delta) if days_delta else 0.0   # filter feature
