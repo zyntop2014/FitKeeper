@@ -307,6 +307,7 @@ def buslist2():
 
 
 @app.route('/comp_info')
+@login_required
 def comp_info():
     """
     information_submit.html: 
@@ -316,6 +317,7 @@ def comp_info():
 
 
 @app.route('/post/', methods=['POST'])
+@login_required
 def supplement_profile():
     """
     Receive info from page "information_submit.html",
@@ -327,17 +329,15 @@ def supplement_profile():
     address = request.form['youraddress']
     gender = request.form['gender']
     birthdate = request.form['yourdate']
-
+    # Self-ratings
+    bas_ctr = request.form['yourbasketball']
+    str_ctr = request.form['yourstrength']
+    car_ctr = request.form['yourcardio']
+    swi_ctr = request.form['yourswimming']
+    squ_ctr = request.form['yoursquash']
     # Extract lat & lng from 'address'
     latlng = address.strip('()').split()
     lat, lng = latlng[0], latlng[1]
-
-    # TEST DATA
-    bas_ctr = 4.5
-    str_ctr = 5.0
-    car_ctr = 1.0
-    swi_ctr = 3.5
-    squ_ctr = 0.5
 
     # Update profile database
     db = get_db()
