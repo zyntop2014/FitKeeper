@@ -55,7 +55,7 @@ def user_init(db, profile):
                 (uid, name, email, family_name, given_name, photo, bas_ctr, \
                 str_ctr, car_ctr, swi_ctr, squ_ctr, rating, rating_ctr, signup_date) \
                 VALUES \
-                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,c %s, %s, %s, %s)",
+                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (str(profile['id']), str(profile['name']), str(profile['email']),
                  str(profile['family_name']), str(profile['given_name']),
                  str(profile['picture']), str(0.0), str(0.0),
